@@ -1,0 +1,42 @@
+# See https://pre-commit.com for more information
+# See https://pre-commit.com/hooks.html for more hooks
+repos:
+## general purpose linting and formatting
+- repo: https://github.com/pre-commit/pre-commit-hooks
+  rev: v4.1.0
+  hooks:
+  - id: trailing-whitespace
+  - id: end-of-file-fixer
+  - id: check-yaml
+  - id: check-added-large-files
+
+## Python support
+- repo: https://github.com/psf/black
+  rev: 22.3.0
+  hooks:
+  - id: black
+    exclude: ^docs/
+- repo: https://github.com/pycqa/flake8
+  rev: 7.0.0
+  hooks:
+  - id: flake8
+    exclude: ^docs/
+- repo: https://github.com/pycqa/isort
+  rev:  5.12.0
+  hooks:
+  - id: isort
+    args: ["--profile", "black", "--filter-files"]
+- repo: https://github.com/pycqa/pydocstyle
+  rev: 4.0.0  # pick a git hash / tag to point to
+  hooks:
+  - id: pydocstyle
+    exclude: ^docs/
+- repo: https://github.com/MarcoGorelli/cython-lint
+  rev: v0.16.6
+  hooks:
+  - id: cython-lint
+  - id: double-quote-cython-strings
+# - repo: https://github.com/hhatto/autopep8
+#   rev: 'e66c80734f97df2dbdae1275368d0f69f8c13519'
+#   hooks:
+#   - id: autopep8
