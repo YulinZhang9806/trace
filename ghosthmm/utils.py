@@ -14,7 +14,7 @@ from scipy.stats import gamma
 from tqdm import tqdm
 
 
-class Performance_utils:
+class PerformanceUtils:
     """Utilities for performance inference from intervals."""
 
     def __init__(
@@ -244,7 +244,7 @@ class Performance_utils:
             return out, states
 
 
-class ARG_utils:
+class ARGUtils:
     """Class defining functions for tree information extraction."""
 
     def __init__(
@@ -698,7 +698,7 @@ class ARG_utils:
         return np.array(out_pp)
 
 
-class Output_utils:
+class OutputUtils:
     """Utility to filter and generate hmm output files."""
 
     def __init__(
@@ -856,7 +856,7 @@ class ExplicitDefaultsHelpFormatter(argparse.ArgumentDefaultsHelpFormatter):
         return super()._get_help_string(action)
 
 
-class Figure_utils:
+class FigureUtils:
     """Utility for data processing and figure generation."""
 
     def bootstrap(self, data, nboot, ntime, func=np.mean, replace=True):
