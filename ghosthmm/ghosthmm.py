@@ -2,18 +2,6 @@
 import numpy as np
 import pandas as pd
 import tskit
-from joblib import Parallel, delayed
-from KDEpy import FFTKDE
-from pomegranate.distributions import *
-from pomegranate.gmm import GeneralMixtureModel
-from scipy.integrate import quad
-from scipy.interpolate import interp1d
-from scipy.linalg import expm
-from scipy.special import logsumexp as logsumexp_sp
-from scipy.stats import binom
-from scipy.stats import gamma as gamma_sp
-from tqdm import tqdm
-
 from ghosthmm_utils import (
     backward_algo_product,
     ecm_full_update,
@@ -22,6 +10,17 @@ from ghosthmm_utils import (
     forward_algo_product,
     update_oneind_cython,
 )
+from joblib import Parallel, delayed
+from KDEpy import FFTKDE
+from pomegranate.distributions import Gamma
+from pomegranate.gmm import GeneralMixtureModel
+from scipy.integrate import quad
+from scipy.interpolate import interp1d
+from scipy.linalg import expm
+from scipy.special import logsumexp as logsumexp_sp
+from scipy.stats import binom
+from scipy.stats import gamma as gamma_sp
+from tqdm import tqdm
 
 
 class GhostProductHmm:

@@ -3,12 +3,18 @@
 
 from distutils.core import Extension
 
+import numpy
 from Cython.Build import cythonize
 from Cython.Compiler import Options
 from setuptools import setup
-import numpy 
 
-extensions = [Extension("ghosthmm_utils", ["ghosthmm/ghosthmm_utils.pyx"], include_dirs=[numpy.get_include()])]
+extensions = [
+    Extension(
+        "ghosthmm_utils",
+        ["ghosthmm/ghosthmm_utils.pyx"],
+        include_dirs=[numpy.get_include()],
+    )
+]
 
 setup_args = dict(
     ext_modules=cythonize(
