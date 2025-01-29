@@ -23,7 +23,7 @@ from scipy.stats import gamma as gamma_sp
 from tqdm import tqdm
 
 
-class GhostProductHmm:
+class GhostProductHMM:
     def __init__(self, t_admix=None, t_archaic=None):
         """Initialization of the class."""
         self.ts = None

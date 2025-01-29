@@ -12,17 +12,18 @@ requires = [
     "tskit",
     "joblib",
     "pomegranate",
-    "KDEpy"
+    "KDEpy",
+    "intervaltree",
 ]
 build-backend = "setuptools.build_meta"
 
 [project]
 name = "ghosthmm"
 description = "HMM-based method to infer latent admixture ."
-keywords = [""]
+keywords = ["admixture", "introgression"]
 classifiers = ["Development Status :: 3 - Alpha", "Intended Audience :: Science/Research", "Programming Language :: Python :: 3"]
 requires-python = ">= 3.11"
-dependencies = ["numpy", "scipy", "pandas", "Cython", "Click", "cyvcf2"]
+dependencies = ["numpy", "scipy", "pandas", "Cython", "Click", "tqdm", "tskit", "joblib", "pomegranate", "intervaltree"]
 dynamic = ["version"]
 authors = [{name = "Arjun Biddanda", email = "abiddan1@jhu.edu"}, {name="Yulin Zhang", email="zhangyulin9806@berkeley.edu"}]
 

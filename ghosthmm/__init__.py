@@ -1,6 +1,6 @@
 """GhostHMM Module."""
 
-__version__ = '0.0.1a'
+__version__ = "0.0.1a"
 
 
 from .ghosthmm import GhostProductHMM

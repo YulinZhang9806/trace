@@ -6,7 +6,7 @@ import click
 import numpy as np
 import pandas as pd
 
-from Ghosthmm import GhostHMM
+from ghosthmm import GhostProductHMM
 
 # Setup the logging configuration for the CLI
 logging.basicConfig(
