@@ -1,12 +1,11 @@
 """CLI for ghosthmm."""
 import logging
 import sys
+from trace import GhostProductHMM
 
 import click
 import numpy as np
 import pandas as pd
-
-from ghosthmm import GhostProductHMM
 
 # Setup the logging configuration for the CLI
 logging.basicConfig(
@@ -22,19 +21,35 @@ logging.basicConfig(
     "-i",
     required=True,
     type=click.Path(exists=True),
-    help="Input data file for PGT-A array intensity data.",
+    help="Input data in tskit format.",
+)
+@click.option(
+    "--time",
+    "-t",
+    required=True,
+    type=float,
+    default=15e3,
+    help="Focal time for branch.",
+)
+@click.option(
+    "--samples",
+    "-s",
+    required=False,
+    type=click.Path(exists=True),
+    help="List of sampled individuals to run analysis for.",
 )
 @click.option(
     "--out",
     "-o",
     required=True,
     type=str,
-    default="karyohmm",
+    default="trace",
     help="Output file prefix.",
 )
 def main(
     input,
-    out="ghosthmm",
+    t,
+    out="trace",
 ):
-    """GhostHMM-Inference CLI."""
+    """TRACE-Inference CLI."""
     logging.info(f"Starting to read input data {input}...")

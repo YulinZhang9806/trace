@@ -2,7 +2,6 @@
 
 import msprime as msp
 import pytest
-
 from ghosthmm import GhostProductHMM
 
 ts1 = msp.sim_ancestry(
