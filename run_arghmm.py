@@ -19,13 +19,6 @@ def main():
         + "sample name if --sample-names is specified",
         required=True,
     )
-    required.add_argument(
-        "--t-archaic",
-        help='the time defining the "archaic" population (e.g. the split time between the archaic and modern human'
-        + ' populations should be older than this time), in generations',
-        type=int,
-        required=True,
-    )
     mutual_exclusive = parser.add_argument_group("one of which is required")
     me = mutual_exclusive.add_mutually_exclusive_group(required=True)
     me.add_argument(
