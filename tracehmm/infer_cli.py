@@ -17,17 +17,15 @@ logging.basicConfig(
 
 
 @click.command()
+
 @click.option(
-    "--mode",
-    "-m",
+    "--individual",
     required=True,
-    multiple=False,
-    type=click.Choice(["extract", "infer", "summarize"]),
-    help="Mode.",
+    type=click.Path(exists=True),
+    help="Input data in tskit format.",
 )
 @click.option(
-    "--input",
-    "-i",
+    "--npz-file",
     required=False,
     type=click.Path(exists=True),
     help="Input data in tskit format.",
@@ -62,10 +60,5 @@ def main(
     out="trace",
 ):
     """TRACE-Inference CLI."""
-    logging.info(f"Starting TRACE in mode {mode}...")
-    if mode == "extract":
-        pass
-    if mode == "infer":
-        pass
-    if mode == "summarize":
-        pass
+    logging.info(f"Starting trace-infer...")
+    pass
