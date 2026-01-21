@@ -1,4 +1,4 @@
-"""CLI for ghosthmm."""
+"""CLI for TRACE."""
 import logging
 import sys
 from trace import GhostProductHMM
