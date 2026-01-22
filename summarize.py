@@ -2,8 +2,8 @@ import numpy as np
 import tskit
 import tszip
 import sys
-from arg_hmm.arg_hmm import GhostProductHmm
-from arg_hmm.utils import (
+from trace.trace import TRACE
+from trace.utils import (
     ExplicitDefaultsHelpFormatter,
     Output_utils
 )

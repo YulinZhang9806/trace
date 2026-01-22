@@ -10,8 +10,8 @@ from setuptools import setup
 
 extensions = [
     Extension(
-        "ghosthmm_utils",
-        ["ghosthmm/ghosthmm_utils.pyx"],
+        "trace_utils",
+        ["trace/trace_utils.pyx"],
         include_dirs=[numpy.get_include()],
     )
 ]

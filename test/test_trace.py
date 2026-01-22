@@ -2,7 +2,7 @@
 
 import msprime as msp
 import pytest
-from ghosthmm import GhostProductHMM
+from trace import TRACE
 
 ts1 = msp.sim_ancestry(
     samples=100,
@@ -21,20 +21,20 @@ ts2 = msp.sim_ancestry(
 
 
 def test_init():
-    """Test that GhostHMM can be naively initialized."""
-    hmm = GhostProductHMM()
+    """Test that trace can be naively initialized."""
+    hmm = TRACE()
 
 
 @pytest.mark.parametrize("ts", [ts1, ts2])
 def test_add_ts(ts):
     """Test that adding a tree-sequence works fine."""
-    hmm = GhostProductHMM()
+    hmm = TRACE()
     hmm.add_tree_sequence(ts)
 
 
 @pytest.mark.parametrize("ts", [ts1, ts2])
 def test_extract_tmrca(ts):
-    hmm = GhostProductHMM()
+    hmm = TRACE()
     hmm.add_tree_sequence(ts)
     # NOTE: there is some funkiness about the random seed setting here ...
     tmrcas = hmm.extract_tmrca(i=0)
