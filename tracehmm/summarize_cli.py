@@ -6,7 +6,7 @@ import click
 import numpy as np
 import pandas as pd
 
-from tracehmm import TRACE
+from tracehmm import TRACE, OutputUtils
 
 # Setup the logging configuration for the CLI
 logging.basicConfig(
@@ -18,47 +18,51 @@ logging.basicConfig(
 
 @click.command()
 @click.option(
-    "--mode",
-    "-m",
+    "--file",
+    help="Posterior probability file from trace-infer, end with .xss.npz. Multiple files are allowed, separated by comma",
+    type=str,
     required=True,
-    multiple=False,
-    type=click.Choice(["extract", "infer", "summarize"]),
-    help="Mode.",
+)
+
+@click.option(
+    "--chrom",
+    help="Chromosome ID used in the output file",
+    type=str,
+    default=None,
 )
 @click.option(
-    "--input",
-    "-i",
-    required=False,
-    type=click.Path(exists=True),
-    help="Input data in tskit format.",
-)
-@click.option(
-    "--time",
-    "-t",
-    required=False,
+    "--posterior-threshold",
+    "-p",
+    help="posterior probability threshold for calling introgression",
     type=float,
-    default=15e3,
-    help="Focal time for branch.",
+    default=0.9,
 )
 @click.option(
-    "--samples",
-    "-s",
-    required=False,
-    type=click.Path(exists=True),
-    help="List of sampled individuals to run analysis for.",
+    "--physical-length-threshold",
+    help="physical length threshold for calling introgression, in bp",
+    type=int,
+    default=50000,
+)
+@click.option(
+    "--genetic-distance-threshold",
+    help="genetic distance threshold for calling introgression, in cM",
+    type=float,
+    default=0.05,
+)
+@click.option(
+    "--remove-margin",
+    help="remove margin from start and end in states, in kbp",
+    type=float,
+    default=0,
 )
 @click.option(
     "--out",
-    "-o",
-    required=True,
+    help="prefix for output file, output file will be named as [out].summary.txt",
     type=str,
-    default="trace",
-    help="Output file prefix.",
+    required=True,
 )
 def main(
-    mode="extract",
-    input=None,
-    time=15e3,
+    file=
     out="trace",
 ):
     """TRACE-Inference CLI."""
