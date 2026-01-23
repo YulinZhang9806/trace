@@ -1,14 +1,12 @@
-import argparse
-import sys
-
 import numpy as np
-import pandas as pd
-import pybedtools
 import tskit
 import tszip
-from arg_hmm.arg_hmm import GhostProductHmm
-from arg_hmm.utils import ExplicitDefaultsHelpFormatter, Output_utils
-
+import sys
+from trace.trace import TRACE
+from trace.utils import (
+    ExplicitDefaultsHelpFormatter,
+    Output_utils
+)
 
 def main():
     parser = argparse.ArgumentParser(formatter_class=ExplicitDefaultsHelpFormatter)
