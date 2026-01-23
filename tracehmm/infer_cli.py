@@ -32,7 +32,7 @@ logging.basicConfig(
 )
 @click.option(
     "--data-file",
-    help="a list of .npz/npy files, output from getdata_singer.py",
+    help="a list of .npz/npy files, output from trace-extract",
     type=str,
     default=None,
 )
@@ -271,22 +271,16 @@ def main(
     logging.info(
         f"mean e2: {hmm.emi2_a1 / hmm.emi2_b1}, std e2: {np.sqrt(hmm.emi2_a1 / (hmm.emi2_b1 ** 2))}, mean e2: {hmm.emi2_a2 / hmm.emi2_b2}, std e2: {np.sqrt(hmm.emi2_a2 / (hmm.emi2_b2 ** 2))}"
     )
-    logging.info("Running TRACE decoding now ...")
+    logging.info("Running TRACE decoding via Forward-Backward algorithm ...")
     gammas, _, _ = hmm.decode()
 
-    outpref = out
-    # save hmm.xss as npz file
     if sample_names is not None:
         indiv = tsid_to_samplename[indiv]
     for idx, chrom in enumerate(chroms):
-        if len(outpref) == 1:
-            outp = outpref[0]
-        else:
-            outp = outpref[idx]
         if subrange is None:
-            outname = f"{outp}.{chrom}.xss.npz"
+            outname = f"{out}.{chrom}.xss.npz"
         else:
-            outname = f"{outp}{indiv}.{chrom}_{subrange[0]}_{subrange[1]}.xss.npz"
+            outname = f"{out}{indiv}.{chrom}_{subrange[0]}_{subrange[1]}.xss.npz"
         start = 0 if idx == 0 else np.sum(chromfile_edges[:idx])
         end = np.sum(chromfile_edges[: (idx + 1)])
         logging.info(f"Writing output to {outname} ...")
