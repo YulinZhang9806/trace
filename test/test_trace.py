@@ -2,7 +2,8 @@
 
 import msprime as msp
 import pytest
-from trace import TRACE
+
+from tracehmm import TRACE
 
 ts1 = msp.sim_ancestry(
     samples=100,

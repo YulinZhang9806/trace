@@ -1,12 +1,11 @@
+import sys
+from trace.trace import TRACE
+from trace.utils import ExplicitDefaultsHelpFormatter, Output_utils
+
 import numpy as np
 import tskit
 import tszip
-import sys
-from trace.trace import TRACE
-from trace.utils import (
-    ExplicitDefaultsHelpFormatter,
-    Output_utils
-)
+
 
 def main():
     parser = argparse.ArgumentParser(formatter_class=ExplicitDefaultsHelpFormatter)
