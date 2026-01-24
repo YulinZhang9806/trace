@@ -138,7 +138,10 @@ def main(
         logging.info(f"Restricting analysis to {subrange[0]} - {subrange[1]}")
 
     hmm = TRACE()
-    # load data
+    
+    if (data_file is None) and (npz_file is None):
+        logging.info("Need either --npz-file or --data-file to be specified... exiting.")
+        sys.exit(1)
     if npz_file is not None:
         logging.info(f"Loading data from {npz_file}...")
         datafiles = str(npz_file).strip(",").split(",")
@@ -153,6 +156,7 @@ def main(
             logging.info(f"loading {data_file} ...")
             data = np.load(data_file)
             individuals = data["individuals"]
+            print(individuals, indiv)
             indiv_idx = np.where(individuals == indiv)[0][0]
             oncoal = data["ncoal"][indiv_idx]
             ot1s = data["t1s"][indiv_idx]
@@ -164,9 +168,12 @@ def main(
             masked_t2s = np.ma.masked_array(ot2s, mask=(oinclude_regions == 0))
             masked_nleaves = np.ma.masked_array(onleaves, mask=(oinclude_regions == 0))
             chromfile_edges.append(data["treespan"].shape[0])
+            print(masked_ncoal)
             if idx == 0:
                 treespan = data["treespan"]
                 ncoal = func(masked_ncoal, axis=0).data
+                print(ncoal)
+                print(func(masked_ncoal, axis=0).data)
                 t1s = func(masked_t1s, axis=0).data
                 t2s = func(masked_t2s, axis=0).data
                 nleaves = func(masked_nleaves, axis=0).data
@@ -234,12 +241,13 @@ def main(
                 include_regions = np.concatenate(
                     (include_regions, np.max(oinclude_regions, axis=0))
                 )
-    logging.info(f"Setting up TRACE for initialization ...")
-    # run hmm
+    
+    logging.info("Initializing TRACE ...")
+    print(ncoal, data.keys())
     hmm.init_hmm(
         ncoal,
         treespan,
-        intro_prop=intro_prop,
+        intro_prop=proportion_admix,
         subrange=subrange,
         include_regions=include_regions,
     )
@@ -263,7 +271,7 @@ def main(
     logging.info(
         f"mean e_alt: {hmm.emi2_a2 / hmm.emi2_b2}, std e_alt: {np.sqrt(hmm.emi2_a2 / (hmm.emi2_b2 ** 2))}"
     )
-    res_dict = hmm.train(seed=args.seed)
+    res_dict = hmm.train(seed=seed)
     outparams = pd.DataFrame.from_dict(res_dict).to_numpy()
     logging.info(
         f"emi2_a1: {hmm.emi2_a1}, emi2_b1: {hmm.emi2_b1}, emi2_a2: {hmm.emi2_a2}, emi2_b2: {hmm.emi2_b2}"

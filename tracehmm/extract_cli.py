@@ -43,6 +43,9 @@ def write_mutation_ages(ts, chrom=None, include_regions=None, outfix="trace"):
 
 def verify_indivs(indiv=None, sample_names=None):
     """Verify the structure of the individuals provided for extraction."""
+    if (indiv is None) and (sample_names is None):
+        logging.info("Need to supply either --samples or --sample-names ... exiting.")
+        sys.exit(1)
     if indiv is not None:
         indiv = indiv.strip("\"'").strip(",").split(",")
     else:
