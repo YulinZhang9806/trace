@@ -1,0 +1,15 @@
+##Installation
+1. Numpy and Cython extension installation errors
+  - Fail when building `trace_utils` extension
+  - See error message `warning: "Using deprecated NumPy API, disable it with " `
+Solution: force recompile cython files
+'''
+# make sure to activate the environment that you want to build the software in
+conda activate trace
+# remove compiled files
+rm -f tracehmm/trace_utils.c
+rm -rf build/ dist/ *.egg-info/
+# recompile cython files
+pip install cython
+python setup.py build_ext --inplace
+'''
