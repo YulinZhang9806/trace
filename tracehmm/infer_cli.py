@@ -1,4 +1,4 @@
-"""CLI for TRACE."""
+"""CLI for TRACE-Infer."""
 import logging
 import sys
 
@@ -223,7 +223,6 @@ def main(
                 )
 
     logging.info("Initializing TRACE ...")
-    print(ncoal)
     hmm.init_hmm(
         ncoal,
         treespan,

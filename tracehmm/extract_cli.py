@@ -19,28 +19,6 @@ logging.basicConfig(
 )
 
 
-def write_mutation_ages(ts, chrom=None, include_regions=None, outfix="trace"):
-    """Write out the mutational ages."""
-    out = ""
-    for tree in tqdm(ts.trees()):
-        for mut in tree.mutations():
-            if tree.parent(mut.node) != tskit.NULL:
-                out += f"{chrom}\t{int(ts.site(mut.site).position) - 1}\t{int(ts.site(mut.site).position)}\t{tree.time(mut.node)}_{tree.time(tree.parent(mut.node))}\n"
-            else:
-                out += f"{chrom}\t{int(ts.site(mut.site).position) - 1}\t{int(ts.site(mut.site).position)}\t{tree.time(mut.node)}_{tree.time(mut.node)}\n"
-    a = pybedtools.BedTool(out, from_string=True)
-    if include_regions is not None:
-        logging.info(f"Loading {include_regions} to subset mutations considered ...")
-        include_regions = pybedtools.BedTool(include_regions)
-        a = a.intersect(include_regions, u=True)
-    out = "chromosome\tposition\tmutation_age\n"
-    for x in a:
-        out += f"{x.chrom}\t{x.end}\t{x[3]}\n"
-    with open(f"{outfix}.mutation_ages.txt", "w") as out_fp:
-        out_fp.write(out)
-    logging.info(f"Mutation ages saved to {outfix}.mutation_ages.txt!")
-
-
 def verify_indivs(indiv=None, sample_names=None):
     """Verify the structure of the individuals provided for extraction."""
     if (indiv is None) and (sample_names is None):
@@ -216,12 +194,6 @@ def get_data(ts, ind, t_archaic, windowsize, mask=None, chrom=None):
     type=click.Path(exists=True),
     default=None,
 )
-# @click.option(
-#     "--mutation-age",
-#     help="only extract mutation ages in the tree sequence, limited by include regions if specified",
-#     is_flag=True,
-#     default=False,
-# )
 @click.option(
     "--out",
     "-o",
@@ -238,7 +210,6 @@ def main(
     sample_names=None,
     chrom=None,
     include_regions=None,
-    # mutation_age=None,
     out="trace",
 ):
     """TRACE-Extract CLI."""
@@ -252,12 +223,6 @@ def main(
         logging.info(f"Unrecognized file extension: {tree_file}! exiting ...")
         sys.exit(1)
 
-    # if mutation_age:
-    #     logging.info(f"Extracting mutations to write from {tree_file} ...")
-    #     write_mutation_ages(
-    #         ts, chrom=chrom, include_regions=include_regions, outfix=out
-    #     )
-    # else:
     # NOTE: you probably have to error out to make sure both are not None...
     logging.info("Verifying individual labels ...")
     logging.info(f"Comparing {samples} and {sample_names} ...")
@@ -268,7 +233,6 @@ def main(
                 "chromosome identifier is not specified (required when using --include-regions) ... exiting."
             )
             sys.exit(1)
-    # This is the actual look to run ...
     logging.info(
         f"Extracting TRACE-information from {tree_file} across {len(indiv)} individuals ..."
     )
@@ -284,9 +248,6 @@ def main(
         )
     else:
         atreespan = treespan
-    logging.info(
-        f"Extracting TRACE-information from {tree_file} across {len(indiv)} individuals ..."
-    )
 
     logging.info(f"Writing output to {out}.npz ...")
     np.savez_compressed(
