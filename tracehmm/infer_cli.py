@@ -138,9 +138,11 @@ def main(
         logging.info(f"Restricting analysis to {subrange[0]} - {subrange[1]}")
 
     hmm = TRACE()
-    
+
     if (data_file is None) and (npz_file is None):
-        logging.info("Need either --npz-file or --data-file to be specified... exiting.")
+        logging.info(
+            "Need either --npz-file or --data-file to be specified... exiting."
+        )
         sys.exit(1)
     if npz_file is not None:
         logging.info(f"Loading data from {npz_file}...")
@@ -240,7 +242,7 @@ def main(
                 include_regions = np.concatenate(
                     (include_regions, np.max(oinclude_regions, axis=0))
                 )
-    
+
     logging.info("Initializing TRACE ...")
     print(ncoal, data.keys())
     hmm.init_hmm(
