@@ -1,6 +1,7 @@
 """CLI for TRACE-Infer."""
 import logging
 import sys
+from pathlib import Path
 
 import click
 import numpy as np
@@ -104,7 +105,7 @@ def main(
     out="trace",
 ):
     """TRACE-Inference CLI."""
-    logging.info(f"Starting trace-infer...")
+    logging.info("Starting trace-infer...")
     logging.info(f"Setting random seed to {seed} ...")
     chroms = str(chroms).strip(",").split(",")
     logging.info(f"Analysis to be run for {chroms} ...")
@@ -115,7 +116,7 @@ def main(
     else:
         func = np.ma.median
 
-    logging.info(f"Establishing sample IDs ...")
+    logging.info("Establishing sample IDs ...")
     # handle sample names
     try:
         indiv = int(individual)
@@ -147,7 +148,11 @@ def main(
         chromfile_edges = []
         for idx, data_file in enumerate(datafiles):
             logging.info(f"loading {data_file} ...")
-            data = np.load(data_file)
+            if Path(data_file).is_file():
+                data = np.load(data_file)
+            else:
+                logging.info(f"Listed {data_file} is not a file ... exiting.")
+                sys.exit(1)
             individuals = data["individuals"]
             indiv_idx = np.where(individuals == indiv)[0][0]
             oncoal = data["ncoal"][indiv_idx]
@@ -181,9 +186,19 @@ def main(
         assert len(chroms) == len(datafiles)
         chromfile_edges = []
         for idx, data_file in enumerate(datafiles):
-            logging.info(f"loading {data_file} ...")
-            with open(data_file, "r") as f:
-                data_files = f.readlines()
+            if Path(data_file).is_file():
+                logging.info(f"loading {data_file} ...")
+                with open(data_file, "r") as f:
+                    data_files = f.readlines()
+            else:
+                logging.info(
+                    f"File {data_file} is not a valid filepath from `--data-files`  ... exiting."
+                )
+                sys.exit(1)
+            for fp in data_files:
+                if not Path(fp.strip()).is_file():
+                    logging.info(f"File {fp} is not a valid filepath ... exiting.")
+                    sys.exit(1)
             data = np.load(data_files[0].strip())
             individuals = data["individuals"]
             indiv_idx = np.where(individuals == indiv)[0][0]

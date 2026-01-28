@@ -1,13 +1,12 @@
 """CLI for TRACE."""
 import logging
-import pathlib
 import sys
+from pathlib import Path
 
 import click
 import numpy as np
-import pandas as pd
 
-from tracehmm import TRACE, OutputUtils
+from tracehmm import OutputUtils
 
 # Setup the logging configuration for the CLI
 logging.basicConfig(
@@ -65,7 +64,7 @@ def main(
     out="trace",
 ):
     """TRACE-Summarize CLI."""
-    logging.info(f"Starting TRACE-summarize ...")
+    logging.info("Starting TRACE-summarize ...")
 
     # read the posterior probability file
     files = files.split(",")
@@ -76,17 +75,24 @@ def main(
     out_pps = []
     out_treespans = []
     out_treespans_phy = []
-    try:
-        for file in files:
-            with np.load(file) as d:
-                data = {k: d[k] for k in d.files}
-                out_pps.append(data["gammas"])
-                out_treespans.append(data["treespan"])
-                out_treespans_phy.append(data["treespan_phy"])
-    except Exception as e:
-        logging.info(f"Error reading the posterior probability file: {e}")
-        logging.info(f"Total files: {files}")
-        sys.exit(1)
+    for file in files:
+        try:
+            if Path(file).is_file():
+                with np.load(file) as d:
+                    data = {k: d[k] for k in d.files}
+                    out_pps.append(data["gammas"])
+                    out_treespans.append(data["treespan"])
+                    out_treespans_phy.append(data["treespan_phy"])
+            else:
+                logging.info(f"{file} is not an actual file ... exiting.")
+                sys.exit(1)
+        except KeyError as e:
+            logging.info(f"File {file} does not have the appropriate properties: {e}")
+            sys.exit(1)
+        except Exception as e:
+            logging.info(f"Error reading the posterior probability file: {e}")
+            logging.info(f"Total files: {files}")
+            sys.exit(1)
 
     logging.info(f"Writing output to {out}.summary.txt ...")
     outstring = "chromosome\tstart\tend\tmean_posterior\tlength(bp)\tlength(cM)\n"

@@ -1,10 +1,10 @@
 """CLI for trace-extract."""
 import logging
 import sys
+from pathlib import Path
 
 import click
 import numpy as np
-import pybedtools
 import tskit
 import tszip
 from tqdm import tqdm
@@ -27,24 +27,22 @@ def verify_indivs(indiv=None, sample_names=None):
     if indiv is not None:
         indiv = indiv.strip("\"'").strip(",").split(",")
     else:
-        try:
+        if Path(sample_names).is_file():
             with open(sample_names, "r") as f:
                 indiv = f.readlines()
             indiv = [x.strip() for x in indiv]
-        except FileNotFoundError:
+        else:
             logging.info(f"{sample_names} is not a valid filepath...")
             sys.exit(1)
     try:
         indiv = [int(x) for x in indiv if len(x) > 0]
-    except Exception as _:
+    except ValueError:
         indiv = [str(x) for x in indiv if len(x) > 0]
     output_utils = OutputUtils(samplefile=sample_names, samplename=indiv)
     if sample_names is not None:
         samplename_to_tsid, tsid_to_samplename = output_utils.read_samplename()
         if isinstance(indiv[0], str):
             indiv = np.array([samplename_to_tsid[x] for x in indiv])
-
-    # makesure indiv is tree node ID
     assert isinstance(indiv[0], int)
     return indiv
 

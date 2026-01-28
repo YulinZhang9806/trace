@@ -15,7 +15,7 @@ TBD
 
 ## Running an Example
 
-In order to facilitate a basic example, we have provided some  simulated data to get a feel for using the CLI.
+In order to facilitate a basic example, we have provided some simulated data to get a feel for using the CLI.
 
 
 1. To extract relevant observation data for the HMM, we use:
