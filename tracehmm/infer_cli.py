@@ -233,12 +233,20 @@ def main(
                     )
                     sys.exit(1)
                 indiv_idx = np.where(individuals == indiv)[0][0]
-                oncoal = np.vstack((oncoal, data["ncoal"][indiv_idx]))
-                ot1s = np.vstack((ot1s, data["t1s"][indiv_idx]))
-                ot2s = np.vstack((ot2s, data["t2s"][indiv_idx]))
-                oinclude_regions = np.vstack(
-                    (oinclude_regions, data["accessible_windows"])
-                )
+                try:
+                    oncoal = np.vstack((oncoal, data["ncoal"][indiv_idx]))
+                    ot1s = np.vstack((ot1s, data["t1s"][indiv_idx]))
+                    ot2s = np.vstack((ot2s, data["t2s"][indiv_idx]))
+                    oinclude_regions = np.vstack(
+                        (oinclude_regions, data["accessible_windows"])
+                    )
+                except ValueError:
+                    logging.info(f"inconsistent data dimensions in {x} and previous files ... exiting.")
+                    logging.info(
+                        "Please run trace-extract with --window-size specified to ensure consistent" + 
+                        " data dimensions across posterior tree sequences."
+                    )
+                    sys.exit(1)
             masked_ncoal = np.ma.masked_array(oncoal, mask=(oinclude_regions == 0))
             masked_t1s = np.ma.masked_array(ot1s, mask=(oinclude_regions == 0))
             masked_t2s = np.ma.masked_array(ot2s, mask=(oinclude_regions == 0))
