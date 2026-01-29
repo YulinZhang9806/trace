@@ -7,7 +7,7 @@ import click
 import numpy as np
 import pandas as pd
 
-from tracehmm import TRACE, OutputUtils
+from tracehmm import TRACE
 
 # Setup the logging configuration for the CLI
 logging.basicConfig(
@@ -20,6 +20,7 @@ logging.basicConfig(
 @click.command(context_settings={"show_default": True})
 @click.option(
     "--individual",
+    "-i",
     required=True,
     type=str,
     help="the focal individual tree node id to run the HMM on, only take a "
@@ -35,8 +36,8 @@ logging.basicConfig(
 )
 @click.option(
     "--data-files",
-    help="a list of .npz/npy files, outputs from trace-extract, one file per line"
-    + " (if multiple chromosomes are provided, provide one data file per chromosome, separated by comma, no space).",
+    help="a list of .npz files (outputs from trace-extrac), one file per line."
+    + " If multiple chromosomes are provided, provide one data file per chromosome, separated by comma (no spaces).",
     type=str,
     default=None,
 )
@@ -49,27 +50,26 @@ logging.basicConfig(
 )
 @click.option(
     "--func",
-    "-f",
     required=False,
     type=click.Choice(["mean", "median"]),
     default="mean",
     help="Summarize function for windows across posterior tree sequences.",
 )
-@click.option(
-    "--sample-names",
-    help="a file containing sample names for all individuals in the tree sequence, "
-    + "tab separated, two columns, first column contains tree node id (int), "
-    + "second column contains sample names (str)",
-    type=click.Path(exists=True),
-    default=None,
-)
+# @click.option(
+#     "--sample-names",
+#     help="a file containing sample names for all individuals in the tree sequence, "
+#     + "tab separated, two columns, first column contains tree node id (int), "
+#     + "second column contains sample names (str)",
+#     type=click.Path(exists=True),
+#     default=None,
+# )
 @click.option(
     "--genetic-maps",
     help="a HapMap formatted genetic map (see https://ftp.ncbi.nlm.nih.gov/hapmap/recombination/2011-01_phaseII_B37/ for hg19 HapMap genetic map),"
     + "the 2nd and 4th column (1-index) should be position (bp) and genetic distance (cM); if multiple chromosomes are provided, "
     + "separate by comma (no spaces). "
     + "assume a uniform recombination rate of 1e-8 per bp per generation if not specified",
-    type=click.Path(exists=True),
+    type=str,
     default=None,
 )
 @click.option(
@@ -92,7 +92,6 @@ def main(
     data_files,
     chroms,
     func,
-    sample_names,
     genetic_maps,
     seed,
     out="trace",
@@ -114,18 +113,8 @@ def main(
     try:
         indiv = int(individual)
     except ValueError:
-        indiv = str(individual)
-    output_utils = OutputUtils(samplefile=sample_names, samplename=indiv)
-    if sample_names is not None:
-        samplename_to_tsid, tsid_to_samplename = output_utils.read_samplename()
-        if isinstance(indiv, str):
-            if indiv not in samplename_to_tsid:
-                logging.info(
-                    f"Sample name {indiv} not found in sample names file ... exiting."
-                )
-                sys.exit(1)
-            indiv = samplename_to_tsid[indiv]
-    # makesure indiv is tree node ID
+        logging.info(f"Cannot convert individual {individual} to int ... exiting.")
+        sys.exit(1)
     assert isinstance(indiv, int)
 
     hmm = TRACE()
@@ -152,6 +141,11 @@ def main(
                 logging.info(f"Listed {data_file} is not a file ... exiting.")
                 sys.exit(1)
             individuals = data["individuals"]
+            if indiv not in individuals:
+                logging.info(
+                    f"Individual {indiv} not found in data file {data_file} ... exiting."
+                )
+                sys.exit(1)
             indiv_idx = np.where(individuals == indiv)[0][0]
             oncoal = data["ncoal"][indiv_idx]
             ot1s = data["t1s"][indiv_idx]
@@ -201,6 +195,11 @@ def main(
                     sys.exit(1)
             data = np.load(data_files[0].strip())
             individuals = data["individuals"]
+            if indiv not in individuals:
+                logging.info(
+                    f"Individual {indiv} not found in data file {data_files[0]} ... exiting."
+                )
+                sys.exit(1)
             indiv_idx = np.where(individuals == indiv)[0][0]
             oncoal = data["ncoal"][indiv_idx]
             ot1s = data["t1s"][indiv_idx]
@@ -211,13 +210,28 @@ def main(
                 logging.info(f"loading {x} ...")
                 data = np.load(x)
                 individuals = data["individuals"]
+                if indiv not in individuals:
+                    logging.info(
+                        f"Individual {indiv} not found in data file {x} ... exiting."
+                    )
+                    sys.exit(1)
                 indiv_idx = np.where(individuals == indiv)[0][0]
-                oncoal = np.vstack((oncoal, data["ncoal"][indiv_idx]))
-                ot1s = np.vstack((ot1s, data["t1s"][indiv_idx]))
-                ot2s = np.vstack((ot2s, data["t2s"][indiv_idx]))
-                oinclude_regions = np.vstack(
-                    (oinclude_regions, data["accessible_windows"])
-                )
+                try:
+                    oncoal = np.vstack((oncoal, data["ncoal"][indiv_idx]))
+                    ot1s = np.vstack((ot1s, data["t1s"][indiv_idx]))
+                    ot2s = np.vstack((ot2s, data["t2s"][indiv_idx]))
+                    oinclude_regions = np.vstack(
+                        (oinclude_regions, data["accessible_windows"])
+                    )
+                except ValueError:
+                    logging.info(
+                        f"inconsistent data dimensions in {x} and previous files ... exiting."
+                    )
+                    logging.info(
+                        "Please run trace-extract with --window-size specified to ensure consistent"
+                        + " data dimensions across posterior tree sequences."
+                    )
+                    sys.exit(1)
             masked_ncoal = np.ma.masked_array(oncoal, mask=(oinclude_regions == 0))
             masked_t1s = np.ma.masked_array(ot1s, mask=(oinclude_regions == 0))
             masked_t2s = np.ma.masked_array(ot2s, mask=(oinclude_regions == 0))
@@ -279,7 +293,7 @@ def main(
                 gmap_df["pos"] = gmap_df["pos"].astype(float)
                 gmap_df["gen_dist"] = gmap_df["gen_dist"].astype(float)
             except (KeyError, ValueError):
-                print(
+                logging.info(
                     f"Position or genetic distance column in genetic map file {gmap} contains non-numeric values ... exiting."
                 )
                 sys.exit(1)
@@ -311,8 +325,8 @@ def main(
     logging.info("Running TRACE decoding via Forward-Backward algorithm ...")
     gammas, _, _ = hmm.decode(seed=seed)
 
-    if sample_names is not None:
-        indiv = tsid_to_samplename[indiv]
+    # if sample_names is not None:
+    #     indiv = tsid_to_samplename[indiv]
     for idx, chrom in enumerate(chroms):
         outname = f"{out}.{chrom}.xss.npz"
         start = 0 if idx == 0 else np.sum(chromfile_edges[:idx])

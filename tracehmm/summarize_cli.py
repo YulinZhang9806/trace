@@ -19,6 +19,7 @@ logging.basicConfig(
 @click.command(context_settings={"show_default": True})
 @click.option(
     "--files",
+    "-f",
     help="Posterior probability file from trace-infer, end with .xss.npz. Multiple files (for the same individual, "
     + "different chromosomes) are allowed, separated by comma",
     type=str,
@@ -26,6 +27,7 @@ logging.basicConfig(
 )
 @click.option(
     "--chroms",
+    "-c",
     help="Chromosome ID used in the output file, must be consistent with the input files",
     type=str,
     required=True,
@@ -50,6 +52,7 @@ logging.basicConfig(
 )
 @click.option(
     "--out",
+    "-o",
     help="prefix for output file, output file will be named as [out].summary.txt",
     type=str,
     required=True,
