@@ -27,15 +27,27 @@ class OutputUtils:
         lines = infile.readlines()
         infile.close()
         for i in range(len(lines)):
-            s = lines[i].strip("\n").split()  # split by tab or space, check this
+            s = lines[i].strip("\n").split()
+            if i == 0:
+                try:
+                    treenode_id = int(s[0])
+                except:
+                    print(f"Skipping first row (header or invalid format)")
+                    continue  # Skip to next row
+            try:
+                treenode_id = int(s[0])
+                idname = str(s[1])
+            except ValueError:
+                print(f"{s[0]} is not a valid tree node ID ... exiting.")
+                sys.exit(1)
             if len(s) >= 2:
-                samplename_to_tsid[str(s[1])] = int(s[0])
-                tsid_to_samplename[int(s[0])] = str(s[1])
+                samplename_to_tsid[idname] = treenode_id
+                tsid_to_samplename[treenode_id] = idname
             elif len(s) == 0 and i == len(lines) - 1:
                 continue
             else:
-                print("Error: empty row")
-                sys.exit(0)
+                print("Error: empty row or invalid format at row ", i + 1)
+                sys.exit(1)
         return samplename_to_tsid, tsid_to_samplename
 
     def filter_tracts(

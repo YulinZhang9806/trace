@@ -32,7 +32,6 @@ logging.basicConfig(
 )
 @click.option(
     "--posterior-threshold",
-    "-p",
     help="posterior probability threshold for calling introgression",
     type=float,
     default=0.9,

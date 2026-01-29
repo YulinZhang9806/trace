@@ -22,7 +22,7 @@ logging.basicConfig(
     "--individual",
     required=True,
     type=str,
-    help="the focal individual name or id to run the HMM on, take tree node ID as default, only take"
+    help="the focal individual tree node id to run the HMM on, only take a "
     + "sample name if --sample-names is specified.",
 )
 @click.option(
@@ -78,12 +78,12 @@ logging.basicConfig(
     type=int,
     default=42,
 )
-@click.option(
-    "--proportion-admix",
-    help="Prior probability of admixture, default is None.",
-    type=float,
-    default=None,
-)
+# @click.option(
+#     "--proportion-admix",
+#     help="Prior probability of admixture (0 - 0.5), no need to specify. default is None.",
+#     type=float,
+#     default=None,
+# )
 @click.option(
     "--out",
     "-o",
@@ -101,7 +101,6 @@ def main(
     sample_names,
     genetic_maps,
     seed,
-    proportion_admix,
     out="trace",
 ):
     """TRACE-Inference CLI."""
@@ -120,12 +119,17 @@ def main(
     # handle sample names
     try:
         indiv = int(individual)
-    except ValueError:
+    except:
         indiv = str(individual)
     output_utils = OutputUtils(samplefile=sample_names, samplename=indiv)
     if sample_names is not None:
         samplename_to_tsid, tsid_to_samplename = output_utils.read_samplename()
         if isinstance(indiv, str):
+            if indiv not in samplename_to_tsid:
+                logging.info(
+                    f"Sample name {indiv} not found in sample names file ... exiting."
+                )
+                sys.exit(1)
             indiv = samplename_to_tsid[indiv]
     # makesure indiv is tree node ID
     assert isinstance(indiv, int)
@@ -197,7 +201,7 @@ def main(
                 sys.exit(1)
             for fp in data_files:
                 if not Path(fp.strip()).is_file():
-                    logging.info(f"File {fp} is not a valid filepath ... exiting.")
+                    logging.info(f"File {fp} from {data_file} is not a valid filepath ... exiting.")
                     sys.exit(1)
             data = np.load(data_files[0].strip())
             individuals = data["individuals"]
@@ -241,8 +245,8 @@ def main(
     hmm.init_hmm(
         ncoal,
         treespan,
-        intro_prop=proportion_admix,
         include_regions=include_regions,
+        seed=seed,
     )
     if genetic_maps is not None:
         logging.info(f"loading genetic map from {genetic_maps} ...")
@@ -254,10 +258,39 @@ def main(
             sys.exit(1)
         assert len(chroms) == len(gmaps)
         for idx, gmap in enumerate(gmaps):
+            skiprow = True
+            with open(gmap, "r") as f:
+                first_line = f.readline()
+                first_line = first_line.strip().split()
+                if first_line[0] == chroms[idx]:
+                    skiprow = False
+            gmap_df = pd.read_csv(gmap, sep="\s+", header=None, skiprows=int(skiprow), columns = ["chrom","pos","rate","gen_dist"])
+            assert gmap_df["chrom"].nunique() == 1, (
+                "Genetic map file must contain only one chromosome."
+            )
+            assert gmap_df["chrom"].unique()[0] == chroms[idx], (
+                "Chromosome ID in genetic map file must match the provided --chrom argument.\n"
+                f"Provided chromosome ID: {chroms[idx]}, chromosome ID in genetic map file: {gmap_df['chrom'].unique()[0]}"
+            )
+            try:
+                gmap_df["pos"] = gmap_df["pos"].astype(float)
+                gmap_df["gen_dist"] = gmap_df["gen_dist"].astype(float)
+            except:
+                logging.info(
+                    f"Position or genetic distance column in genetic map file {gmap} contains non-numeric values ... exiting."
+                )
+                sys.exit(1)
+            assert gmap_df["pos"].is_monotonic_increasing, (
+                f"Position column in genetic map file {gmap} must be sorted in increasing order ..."
+            )
+            assert gmap_df["gen_dist"].is_monotonic_increasing, (
+                f"Genetic distance column in genetic map file {gmap} must be sorted in increasing order ..."
+            )
+            logging.info(f"Adding recombination map from {gmap} ...")
             start = 0 if idx == 0 else np.sum(chromfile_edges[:idx])
             end = np.sum(chromfile_edges[: (idx + 1)])
             hmm.treespan[start:end] = hmm.add_recombination_map(
-                treespan[start:end], gmap
+                treespan[start:end], gmap, skiprow=skiprow
             )
     logging.info(
         f"mean e_null: {hmm.emi2_a1 / hmm.emi2_b1}, std e_null: {np.sqrt(hmm.emi2_a1 / (hmm.emi2_b1 ** 2))}"
@@ -274,7 +307,7 @@ def main(
         f"mean e2: {hmm.emi2_a1 / hmm.emi2_b1}, std e2: {np.sqrt(hmm.emi2_a1 / (hmm.emi2_b1 ** 2))}, mean e2: {hmm.emi2_a2 / hmm.emi2_b2}, std e2: {np.sqrt(hmm.emi2_a2 / (hmm.emi2_b2 ** 2))}"
     )
     logging.info("Running TRACE decoding via Forward-Backward algorithm ...")
-    gammas, _, _ = hmm.decode()
+    gammas, _, _ = hmm.decode(seed=seed)
 
     if sample_names is not None:
         indiv = tsid_to_samplename[indiv]
@@ -293,4 +326,6 @@ def main(
             accessible_windows=include_regions[start:end],
             params=outparams,
             gammas=np.exp(gammas[:, start:end]),
+            seed=np.array([seed]),
+            individual=np.array([indiv]),
         )

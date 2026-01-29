@@ -120,7 +120,8 @@ class TRACE:
                 ns = np.array(ns)
                 for id_index, id in enumerate(idx):
                     if id not in tree.samples():
-                        sys.exit(f"Error: sample {id} is not a leaf node.")
+                        print(f"Error: sample {id} is not a leaf node.")
+                        sys.exit(1)
                     xsfs = 0
                     nls = 0
                     t1 = 0
@@ -164,14 +165,17 @@ class TRACE:
             self.n_leaves = self.n_leaves[0]
         return self.ncoal, self.t1s, self.t2s, self.n_leaves
 
-    def add_recombination_map(self, treespan, recmap, pos_col=1, m_col=3):
+    def add_recombination_map(self, treespan, recmap, pos_col=1, m_col=3, skiprow=True):
         """Add and interpolate a recombination rate between every location.
 
         Recmap: a recombination map file.
         pos_col: column number for physical positions (0-index).
         m_col: column number for genetic distances (in Centi-Morgan (cM), 0-index).
         """
-        df = pd.read_csv(recmap, sep="\s+")
+        if skiprow:
+            df = pd.read_csv(recmap, sep="\s+")
+        else:
+            df = pd.read_csv(recmap, sep="\s+", header=None)
         recmap = df.iloc[:, [pos_col, m_col]].to_numpy().astype("float")
         if not recmap[0, 0] == 0.0:
             recmap = np.insert(recmap, 0, [0.0, 0.0], axis=0)
@@ -318,6 +322,10 @@ class TRACE:
                 border = np.min(outliers)
                 self.pi0 = 1 - len(outliers) / len(subncoal)
         else:
+            assert (propintro > 0) and (propintro < 50), (
+                "proportion_admix should indicate admixture proportion from the minor ancestry"
+                " between 0 and 50."
+            )
             border = np.percentile(subncoal, 100 - propintro)
             self.pi0 = 1 - propintro / 100
         self.emi2_mean2 = np.mean(subncoal[subncoal >= border])
@@ -506,6 +514,7 @@ class TRACE:
         self,
         data,
         treespan,
+        seed=42,
         intro_prop=None,
         subrange=None,
         include_regions=None,
@@ -513,6 +522,7 @@ class TRACE:
         q=0.1,
     ):
         """Initialize HMM parameters using wrapper function."""
+        np.random.seed(seed)
         self.treespan = treespan
         self.treespan_phy = np.copy(treespan, order="C")
         self.m = self.treespan.shape[0]
@@ -530,7 +540,7 @@ class TRACE:
         self.init_ncoal_gamma_params(p=p, q=q, propintro=intro_prop)
         self.emissions[0] = self.cache_emissions(z=0)
 
-    def train(self, niter=200, seed=1, threshold=0.1):
+    def train(self, niter=200, seed=42, threshold=0.1):
         """Train HMM using wrapper function."""
         np.random.seed(seed)
         res_dict = self.baum_welch_ecm(
@@ -539,8 +549,9 @@ class TRACE:
         )
         return res_dict
 
-    def decode(self):
+    def decode(self, seed=42):
         """Decode HMM using wrapper function."""
+        np.random.seed(seed)
         self.emissions[1] = self.cache_emissions(z=1)
         self.emissions[0] = self.cache_emissions(z=0)
         (

@@ -25,24 +25,24 @@ def verify_indivs(indiv=None, sample_names=None):
     if (indiv is None) and (sample_names is None):
         logging.info("Need to supply either --samples or --sample-names ... exiting.")
         sys.exit(1)
-    if indiv is not None:
-        indiv = indiv.strip("\"'").strip(",").split(",")
-    else:
-        if Path(sample_names).is_file():
-            with open(sample_names, "r") as f:
-                indiv = f.readlines()
-            indiv = [x.strip() for x in indiv]
-        else:
-            logging.info(f"{sample_names} is not a valid filepath...")
-            sys.exit(1)
+    indiv = indiv.strip("\n").strip(",").split(",")
+    assert len(indiv) > 0, "No individuals provided ... exiting."
+    if sample_names is not None:
+        assert Path(sample_names).is_file(), (
+            f"Sample names file {sample_names} does not exist ... exiting."
+        )
     try:
         indiv = [int(x) for x in indiv if len(x) > 0]
-    except ValueError:
+    except:
         indiv = [str(x) for x in indiv if len(x) > 0]
     output_utils = OutputUtils(samplefile=sample_names, samplename=indiv)
     if sample_names is not None:
         samplename_to_tsid, tsid_to_samplename = output_utils.read_samplename()
         if isinstance(indiv[0], str):
+            for x in indiv:
+                if x not in samplename_to_tsid:
+                    logging.info(f"Sample name {x} not found in sample names file ... exiting.")
+                    sys.exit(1)
             indiv = np.array([samplename_to_tsid[x] for x in indiv])
     assert isinstance(indiv[0], int)
     return indiv
@@ -160,6 +160,7 @@ def get_data(ts, ind, t_archaic, windowsize, mask=None, chrom=None):
 @click.option(
     "--samples",
     "-s",
+    required=True,
     type=str,
     help="List of sampled individuals to run analysis for, comma separated (no spaces). "
     + "Recognizes tree node IDs (int, default) or sample names (str, if --sample-names is provided).",
@@ -172,25 +173,25 @@ def get_data(ts, ind, t_archaic, windowsize, mask=None, chrom=None):
     type=int,
     default=None,
     help="Window size summarizing tree sequences (required if working with multiple posterior tree sequences "
-    + "like outputs from SINGER). If not provided, uses the marginal trees directly. (default: None)",
+    + "like outputs from SINGER). If not provided, uses the marginal trees directly.",
 )
 @click.option(
     "--sample-names",
     help="a file containing sample names for all individuals in the tree sequence, "
     + "tab separated, two columns, first column contains tree node id (int), "
-    + "second column contains sample names (str).  (default: None)",
+    + "second column contains sample names (str).",
     type=click.Path(exists=True),
     default=None,
 )
 @click.option(
     "--chrom",
-    help="chromosome ID for the tree sequence, must match the chromosome ID in the include regions file.  (default: None)",
+    help="chromosome ID for the tree sequence, must match the chromosome ID in the include regions file.",
     type=str,
     default=None,
 )
 @click.option(
     "--include-regions",
-    help="A BED file containing the INCLUDE regions for the tree sequence. (default: None)",
+    help="A BED file containing the INCLUDE regions for the tree sequence.",
     type=click.Path(exists=True),
     default=None,
 )
@@ -242,9 +243,10 @@ def main(
         )
         assert len(
             include_regions_df["chrom"].unique()
-        ) == 1, "Include regions file must contain only one chromosome."
+        ) == 1, "Include regions file must be a valide BED file (no header) and contain only one chromosome."
         assert include_regions_df["chrom"].unique()[0] == chrom, (
-            "Chromosome ID in include regions file must match the provided --chrom argument."
+            "Chromosome ID in include regions file must match the provided --chrom argument.\n"
+            f"Provided chromosome ID: {chrom}, chromosome ID in include regions file: {include_regions_df['chrom'].unique()[0]}"
         )
     logging.info(
         f"Extracting TRACE-information from {tree_file} across {len(indiv)} individuals ..."

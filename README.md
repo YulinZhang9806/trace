@@ -57,6 +57,8 @@ trace-summarize --files example_data/test_infer.chr1.xss.npz --chroms chr1 --out
     - "accessible_windows": (l, ) shape 0-1 array specifiying if the marginal tree (or genomic window) is accessible in any one of the m posterior trees, 1-True, 0-False.
     - "params": (p x 9) array storing the inferred parameters at each EM updates (p rounds in total)
     - "gammas": (2 x l) array storing the posterior probability for 0-Human and 1-Archaic states across l marginal trees (or genomic windows)
+    - "seed": (1, ) array storing the random seed used for TRACE run
+    - "individual": (1, ) array storing tree node ID for the focal individual
 
 3. Output from `trace-summarize`: a txt file with following columns
     - "chromosome": chromosome identifier, same as specified in `--chroms`
