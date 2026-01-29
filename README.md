@@ -94,13 +94,6 @@ We need to extract observation data for haplotype 0-3 (sample node ID 0-3, indiv
 > trace-extract --tree-file relate/dataset1_chr1.tsz --t-archaic 15000 --samples 0,1,2,3 -o relate/dataset1_t15000_group1_chr1
 ```
 
-By specifying `--sample-names`, we could use self-defined names to specify these samples (check dataset1_samples.txt file we showed earlier)
-
-```
-# This would produce output file relate/dataset1_t15000_group1_chr1.npz
-> trace-extract --tree-file relate/dataset1_chr1.tsz --t-archaic 15000 --samples ind0_hap1,ind0_hap2,ind1_hap1,ind1_hap2 --sample-names dataset1_samples.txt -o relate/dataset1_t15000_group1_chr1
-```
-
 We could ask TRACE to only use genotype information from regions with high confidence (for example, strict / pilot masks from 1000 Genomes) by specifying `--include-regions` and `--chrom`. This would limit the following analysis on trees that overlap >99% with the input BED file in the tree sequence.
 
 ```
@@ -119,6 +112,28 @@ We need to run this command separately for each tree sequence file. We recommand
 
 ### Running TRACE inference
 
+After the previous step, our result folders should now contain `.npz` files for each `.tsz` file. An example directory structure would look like (`.tsz` files are not shown since they are not relavant)
+
+```
+relate
+├── dataset1_t15000_strictmask_group1_chr1.npz
+├── dataset1_t15000_strictmask_group1_chr2.npz
+└── dataset1_t15000_strictmask_group1_chr3.npz
+
+singer
+├── chr1
+│   ├── dataset1_t15000_strictmask_group1_chr1_sample1.npz
+│   ├── dataset1_t15000_strictmask_group1_chr1_sample2.npz
+│   └── dataset1_t15000_strictmask_group1_chr1_sample3.npz
+├── chr2
+│   ├── dataset1_t15000_strictmask_group1_chr2_sample1.npz
+│   ├── dataset1_t15000_strictmask_group1_chr2_sample2.npz
+│   └── dataset1_t15000_strictmask_group1_chr2_sample3.npz
+└── chr3
+    ├── dataset1_t15000_strictmask_group1_chr3_sample1.npz
+    ├── dataset1_t15000_strictmask_group1_chr3_sample2.npz
+    └── dataset1_t15000_strictmask_group1_chr3_sample3.npz
+```
 
 ## Interpreting Output Files
 

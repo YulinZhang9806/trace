@@ -172,14 +172,14 @@ def get_data(ts, ind, t_archaic, windowsize, mask=None, chrom=None):
     help="Window size summarizing tree sequences (required if working with multiple posterior tree sequences "
     + "like outputs from SINGER). If not provided, uses the marginal trees directly.",
 )
-@click.option(
-    "--sample-names",
-    help="a file containing sample names for all individuals in the tree sequence, "
-    + "tab separated, two columns, first column contains tree node id (int), "
-    + "second column contains sample names (str).",
-    type=click.Path(exists=True),
-    default=None,
-)
+# @click.option(
+#     "--sample-names",
+#     help="a file containing sample names for all individuals in the tree sequence, "
+#     + "tab separated, two columns, first column contains tree node id (int), "
+#     + "second column contains sample names (str).",
+#     type=click.Path(exists=True),
+#     default=None,
+# )
 @click.option(
     "--chrom",
     help="chromosome ID for the tree sequence, must match the chromosome ID in the include regions file.",
@@ -205,7 +205,7 @@ def main(
     t_archaic=15e3,
     samples=None,
     window_size=None,
-    sample_names=None,
+    # sample_names=None,
     chrom=None,
     include_regions=None,
     out="trace",
@@ -223,7 +223,7 @@ def main(
 
     # NOTE: you probably have to error out to make sure both are not None...
     logging.info("Verifying individual labels ...")
-    logging.info(f"Comparing {samples} and {sample_names} ...")
+    sample_names = None  # Currently disabled
     indiv = verify_indivs(samples, sample_names)
     if include_regions is not None:
         if chrom is None:

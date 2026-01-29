@@ -55,14 +55,14 @@ logging.basicConfig(
     default="mean",
     help="Summarize function for windows across posterior tree sequences.",
 )
-@click.option(
-    "--sample-names",
-    help="a file containing sample names for all individuals in the tree sequence, "
-    + "tab separated, two columns, first column contains tree node id (int), "
-    + "second column contains sample names (str)",
-    type=click.Path(exists=True),
-    default=None,
-)
+# @click.option(
+#     "--sample-names",
+#     help="a file containing sample names for all individuals in the tree sequence, "
+#     + "tab separated, two columns, first column contains tree node id (int), "
+#     + "second column contains sample names (str)",
+#     type=click.Path(exists=True),
+#     default=None,
+# )
 @click.option(
     "--genetic-maps",
     help="a HapMap formatted genetic map (see https://ftp.ncbi.nlm.nih.gov/hapmap/recombination/2011-01_phaseII_B37/ for hg19 HapMap genetic map),"
@@ -98,7 +98,7 @@ def main(
     data_files,
     chroms,
     func,
-    sample_names,
+    # sample_names,
     genetic_maps,
     seed,
     out="trace",
@@ -120,17 +120,19 @@ def main(
     try:
         indiv = int(individual)
     except:
-        indiv = str(individual)
-    output_utils = OutputUtils(samplefile=sample_names, samplename=indiv)
-    if sample_names is not None:
-        samplename_to_tsid, tsid_to_samplename = output_utils.read_samplename()
-        if isinstance(indiv, str):
-            if indiv not in samplename_to_tsid:
-                logging.info(
-                    f"Sample name {indiv} not found in sample names file ... exiting."
-                )
-                sys.exit(1)
-            indiv = samplename_to_tsid[indiv]
+        print(f"Cannot convert individual {individual} to int ... exiting.")
+        sys.exit(1)
+    #     indiv = str(individual)
+    # output_utils = OutputUtils(samplefile=sample_names, samplename=indiv)
+    # if sample_names is not None:
+    #     samplename_to_tsid, tsid_to_samplename = output_utils.read_samplename()
+    #     if isinstance(indiv, str):
+    #         if indiv not in samplename_to_tsid:
+    #             logging.info(
+    #                 f"Sample name {indiv} not found in sample names file ... exiting."
+    #             )
+    #             sys.exit(1)
+    #         indiv = samplename_to_tsid[indiv]
     # makesure indiv is tree node ID
     assert isinstance(indiv, int)
 
@@ -309,8 +311,8 @@ def main(
     logging.info("Running TRACE decoding via Forward-Backward algorithm ...")
     gammas, _, _ = hmm.decode(seed=seed)
 
-    if sample_names is not None:
-        indiv = tsid_to_samplename[indiv]
+    # if sample_names is not None:
+    #     indiv = tsid_to_samplename[indiv]
     for idx, chrom in enumerate(chroms):
         outname = f"{out}.{chrom}.xss.npz"
         start = 0 if idx == 0 else np.sum(chromfile_edges[:idx])
