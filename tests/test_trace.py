@@ -64,7 +64,6 @@ def test_extract_ncoal_bad_time(ts, t):
     """Test extraction of number of coalescent events from TRACE."""
     hmm = TRACE()
     hmm.add_tree_sequence(ts)
-    # NOTE: there is some funkiness about the random seed setting here ...
     assert hmm.ts is not None
-    with pytest.raises(AssertionError, TypeError):
+    with pytest.raises((AssertionError, TypeError)):
         ncoal, t1s, t2s, n_leaves = hmm.extract_ncoal(idx=0, t_archaic=t)
