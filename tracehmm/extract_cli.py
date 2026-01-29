@@ -143,24 +143,26 @@ def get_data(ts, ind, t_archaic, windowsize, mask=None, chrom=None):
 @click.command(context_settings={"show_default": True})
 @click.option(
     "--tree-file",
+    "-f",
     required=True,
     type=click.Path(exists=True),
     help="Input data in tskit or tsz format.",
 )
 @click.option(
     "--t-archaic",
+    "-t",
     required=True,
     type=float,
     default=15e3,
     help="Focal time for branch.",
 )
 @click.option(
-    "--samples",
-    "-s",
+    "--individuals",
+    "-i",
     required=True,
     type=str,
-    help="List of sampled individuals to run analysis for, comma separated (no spaces). "
-    + "Recognizes tree node IDs (int, default) or sample names (str, if --sample-names is provided).",
+    help="List of sampled haplotypes to run analysis for, comma separated (no spaces). "
+    + "Recognizes tree node IDs (int).",
     default=None,
 )
 @click.option(
@@ -203,7 +205,7 @@ def get_data(ts, ind, t_archaic, windowsize, mask=None, chrom=None):
 def main(
     tree_file=None,
     t_archaic=15e3,
-    samples=None,
+    individuals=None,
     window_size=None,
     # sample_names=None,
     chrom=None,
@@ -224,7 +226,7 @@ def main(
     # NOTE: you probably have to error out to make sure both are not None...
     logging.info("Verifying individual labels ...")
     sample_names = None  # Currently disabled
-    indiv = verify_indivs(samples, sample_names)
+    indiv = verify_indivs(individuals, sample_names)
     if include_regions is not None:
         if chrom is None:
             logging.info(

@@ -20,6 +20,7 @@ logging.basicConfig(
 @click.command(context_settings={"show_default": True})
 @click.option(
     "--individual",
+    "-i",
     required=True,
     type=str,
     help="the focal individual tree node id to run the HMM on, only take a "
@@ -49,7 +50,6 @@ logging.basicConfig(
 )
 @click.option(
     "--func",
-    "-f",
     required=False,
     type=click.Choice(["mean", "median"]),
     default="mean",
@@ -120,7 +120,7 @@ def main(
     try:
         indiv = int(individual)
     except:
-        print(f"Cannot convert individual {individual} to int ... exiting.")
+        logging.info(f"Cannot convert individual {individual} to int ... exiting.")
         sys.exit(1)
     #     indiv = str(individual)
     # output_utils = OutputUtils(samplefile=sample_names, samplename=indiv)
@@ -160,6 +160,11 @@ def main(
                 logging.info(f"Listed {data_file} is not a file ... exiting.")
                 sys.exit(1)
             individuals = data["individuals"]
+            if indiv not in individuals:
+                logging.info(
+                    f"Individual {indiv} not found in data file {data_file} ... exiting."
+                )
+                sys.exit(1)
             indiv_idx = np.where(individuals == indiv)[0][0]
             oncoal = data["ncoal"][indiv_idx]
             ot1s = data["t1s"][indiv_idx]
@@ -207,6 +212,11 @@ def main(
                     sys.exit(1)
             data = np.load(data_files[0].strip())
             individuals = data["individuals"]
+            if indiv not in individuals:
+                logging.info(
+                    f"Individual {indiv} not found in data file {data_files[0]} ... exiting."
+                )
+                sys.exit(1)
             indiv_idx = np.where(individuals == indiv)[0][0]
             oncoal = data["ncoal"][indiv_idx]
             ot1s = data["t1s"][indiv_idx]
@@ -217,6 +227,11 @@ def main(
                 logging.info(f"loading {x} ...")
                 data = np.load(x)
                 individuals = data["individuals"]
+                if indiv not in individuals:
+                    logging.info(
+                        f"Individual {indiv} not found in data file {x} ... exiting."
+                    )
+                    sys.exit(1)
                 indiv_idx = np.where(individuals == indiv)[0][0]
                 oncoal = np.vstack((oncoal, data["ncoal"][indiv_idx]))
                 ot1s = np.vstack((ot1s, data["t1s"][indiv_idx]))
@@ -279,7 +294,7 @@ def main(
                 gmap_df["pos"] = gmap_df["pos"].astype(float)
                 gmap_df["gen_dist"] = gmap_df["gen_dist"].astype(float)
             except:
-                print(
+                logging.info(
                     f"Position or genetic distance column in genetic map file {gmap} contains non-numeric values ... exiting."
                 )
                 sys.exit(1)
