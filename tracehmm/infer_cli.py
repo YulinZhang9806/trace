@@ -228,20 +228,51 @@ def main(
             masked_t1s = np.ma.masked_array(ot1s, mask=(oinclude_regions == 0))
             masked_t2s = np.ma.masked_array(ot2s, mask=(oinclude_regions == 0))
             chromfile_edges.append(data["treespan"].shape[0])
+            logging.info(
+                f"Aggregating data across posterior tree sequences in {data_file} ..."
+            )
             if idx == 0:
+                if len(data_files) > 1:
+                    ncoal = func(masked_ncoal, axis=0).data
+                    t1s = func(masked_t1s, axis=0).data
+                    t2s = func(masked_t2s, axis=0).data
+                    include_regions = np.max(oinclude_regions, axis=0)
+                else:
+                    logging.info(
+                        f"Warning: only one posterior tree sequence found in {data_file}," + 
+                        "no aggregation performed ..."
+                    )
+                    oncoal[oinclude_regions == 0] = 0
+                    ncoal = oncoal
+                    ot1s[oinclude_regions == 0] = 0
+                    t1s = ot1s
+                    ot2s[oinclude_regions == 0] = 0
+                    t2s = ot2s
+                    include_regions = oinclude_regions
                 treespan = data["treespan"]
-                ncoal = func(masked_ncoal, axis=0).data
-                t1s = func(masked_t1s, axis=0).data
-                t2s = func(masked_t2s, axis=0).data
-                include_regions = np.max(oinclude_regions, axis=0)
             else:
                 treespan = np.vstack((treespan, data["treespan"]))
-                ncoal = np.concatenate((ncoal, func(masked_ncoal, axis=0).data))
-                t1s = np.concatenate((t1s, func(masked_t1s, axis=0).data))
-                t2s = np.concatenate((t2s, func(masked_t2s, axis=0).data))
-                include_regions = np.concatenate(
-                    (include_regions, np.max(oinclude_regions, axis=0))
-                )
+                if len(data_files) > 1:
+                    ncoal = np.concatenate((ncoal, func(masked_ncoal, axis=0).data))
+                    t1s = np.concatenate((t1s, func(masked_t1s, axis=0).data))
+                    t2s = np.concatenate((t2s, func(masked_t2s, axis=0).data))
+                    include_regions = np.concatenate(
+                        (include_regions, np.max(oinclude_regions, axis=0))
+                    )
+                else:
+                    logging.info(
+                        f"Warning: only one posterior tree sequence found in {data_file}," + 
+                        "no aggregation performed ..."
+                    )
+                    oncoal[oinclude_regions == 0] = 0
+                    ncoal = np.concatenate((ncoal, oncoal))
+                    ot1s[oinclude_regions == 0] = 0
+                    t1s = np.concatenate((t1s, ot1s))
+                    ot2s[oinclude_regions == 0] = 0
+                    t2s = np.concatenate((t2s, ot2s))
+                    include_regions = np.concatenate(
+                        (include_regions, oinclude_regions)
+                    )
 
     logging.info("Initializing TRACE ...")
     hmm.init_hmm(
