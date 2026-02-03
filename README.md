@@ -309,7 +309,7 @@ We need to run this command separately for each individual. We could change the 
     - "seed": (1, ) array storing the random seed used for TRACE run
     - "individual": (1, ) array storing tree node ID for the focal individual
 
-3. Output from `trace-summarize`: a txt file $containing inferred archaic fragments$ with following columns
+3. Output from `trace-summarize`: a txt file **containing inferred archaic fragments** with following columns
     - "chromosome": chromosome identifier, same as specified in `--chroms`
     - "start": start of the segment (in bp)
     - "end": end of the segment (in bp)
