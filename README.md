@@ -5,7 +5,7 @@
 In order to install the package locally you can run:
 
 ```
-git clone git@github.com:aabiddanda/trace.git
+git clone https://github.com/aabiddanda/trace.git
 cd trace; pip install .
 ```
 
