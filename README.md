@@ -108,7 +108,7 @@ trace-extract -f example_data/n10_seed10_A.tsz -t 15000 -i 0,1,2,3,4,5,6,7,8,9,1
 2. To infer a posterior decoding of introgression tracts, we use:
 
 ```
-trace-infer -i 2 --npz-files example_data/test_output.npz -o example_data/test_infer
+trace-infer -i 2 --npz-files example_data/test_extract.npz -o example_data/test_infer
 ```
 
 3. To get final archaic introgression tracts, we use:
