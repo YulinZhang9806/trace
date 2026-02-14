@@ -5,7 +5,7 @@
 In order to install the package locally you can run:
 
 ```
-git clone https://github.com/aabiddanda/trace.git
+git clone https://github.com/YulinZhang9806/trace.git
 cd trace; pip install .
 ```
 
@@ -33,7 +33,7 @@ Options:
   -o, --out TEXT             Output file prefixes.  [default: trace; required]
   --help                     Show this message and exit.
 
-> trace-infer --help  
+> trace-infer --help
 Usage: trace-infer [OPTIONS]
 
   TRACE-Inference CLI.
