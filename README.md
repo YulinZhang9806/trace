@@ -9,12 +9,11 @@ Processed data: **(under development)**
 
 ## Installation
 
-In order to install the package locally you can run:
+In order to install the package locally within an environment you can run:
 
 ```
-# NOTE: we suggest making a new environment 
-git clone https://github.com/YulinZhang9806/trace.git
-cd trace; pip install .
+# NOTE: we suggest making a new environment for this installation using `uv` or `pyenv`
+pip install git+https://github.com/YulinZhang9806/trace.git
 ```
 
 ## Command-line Interface
