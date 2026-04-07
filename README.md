@@ -131,7 +131,7 @@ trace-summarize -f example_data/test_infer.chr1.xss.npz -c chr1 -o example_data/
 
 ## Example with Relate and SINGER inferred ARGs
 
-Here we want to show an example of applying TRACE to ARGs inferred from real data. We would assume we are studying Neanderthal introgression into modern humans, so would use `--t-archaic 15000` (the user-defined timescale parater t=15000) for our analysis. This parameter should be chosen based on the aim of the study.
+Here we want to show an example of applying TRACE to ARGs inferred from real data. We would assume we are studying Neanderthal introgression into modern humans, so would use `-t 15000` (the user-defined timescale parater t=15000) for our analysis. This parameter should be chosen based on the aim of the study.
 
 ### Handling Relate and SINGER outputs
 
@@ -184,21 +184,21 @@ We need to extract observation data for haplotype 0-3 (sample node ID 0-3, indiv
 
 ```
 # This would produce output file relate/dataset1_t15000_group1_chr1.npz
-> trace-extract --tree-file relate/dataset1_chr1.tsz --t-archaic 15000 --individuals 0,1,2,3 -o relate/dataset1_t15000_group1_chr1
+> trace-extract --tree-file relate/dataset1_chr1.tsz -t 15000 --individuals 0,1,2,3 -o relate/dataset1_t15000_group1_chr1
 ```
 
 We could ask TRACE to only use genotype information from regions with high confidence (for example, strict / pilot masks from 1000 Genomes) by specifying `--include-regions` and `--chrom`. This would limit the following analysis on trees that overlap >99% with the input BED file in the tree sequence.
 
 ```
 # This would produce output file relate/dataset1_t15000_strictmask_group1_chr1.npz
-> trace-extract --tree-file relate/dataset1_chr1.tsz --t-archaic 15000 --individuals 0,1,2,3 --include-regions strictmask_chr1.bed --chrom chr1 -o relate/dataset1_t15000_strictmask_group1_chr1
+> trace-extract --tree-file relate/dataset1_chr1.tsz -t 15000 --individuals 0,1,2,3 --include-regions strictmask_chr1.bed --chrom chr1 -o relate/dataset1_t15000_strictmask_group1_chr1
 ```
 
 For SINGER outputs, we need to specify `--window-size` parameter so that TRACE could summarize results across different posterior tree sequences.
 
 ```
 # This would produce output file singer/chr1/dataset1_t15000_strictmask_group1_chr1_sample1.npz
-> trace-extract --tree-file singer/chr1/dataset1_chr1_sample1.tsz --t-archaic 15000 --individuals 0,1,2,3 --include-regions strictmask_chr1.bed --chrom chr1 --window-size 1000 -o singer/chr1/dataset1_t15000_strictmask_group1_chr1_sample1
+> trace-extract --tree-file singer/chr1/dataset1_chr1_sample1.tsz -t 15000 --individuals 0,1,2,3 --include-regions strictmask_chr1.bed --chrom chr1 --window-size 1000 -o singer/chr1/dataset1_t15000_strictmask_group1_chr1_sample1
 ```
 
 We need to run this command separately for each tree sequence file. We recommand extracting multiple samples in one command, which would make the most efficient usage of computation time, memory and storage space. However, this step does take some amount of time when the input chromosome is large. In this case, splitting individuals into groups and running different groups in parallel would be the best choice.
