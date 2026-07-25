@@ -111,8 +111,8 @@ cpdef forward_algo_product(double[:, ::1] es , double p=1e-2, double q=1e-2, dou
         alphas_view[0, i] = cur_emission0 + logaddexp(log(1 - p_i) + alphas_view[0, (i - 1)], log(q_i) + alphas_view[1, (i - 1)])
         alphas_view[1, i] = cur_emission1 + logaddexp(log(p_i) + alphas_view[0, (i - 1)], log(1 - q_i) + alphas_view[1, (i - 1)])
         scaler_view[i] = logsumexp(alphas_view[:, i])
-    for j in range(m):
-        alphas_view[j, i] = alphas_view[j, i] - scaler_view[i]
+        for j in range(m):
+            alphas_view[j, i] = alphas_view[j, i] - scaler_view[i]
     return alphas, scaler, sum(scaler)
 
 
