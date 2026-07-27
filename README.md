@@ -2,7 +2,7 @@
 
 Manuscript: [![bioRxiv](https://img.shields.io/badge/bioRxiv-preprint-B31B1B)](https://doi.org/10.64898/2026.03.03.709416)
 
-Analysis pipelines applied in the manuscript: [![Github](https://github.com/YulinZhang9806/trace_paper)
+Analysis pipelines applied in the manuscript: https://github.com/YulinZhang9806/trace_paper
 
 Processed data: **(under development)**
 
