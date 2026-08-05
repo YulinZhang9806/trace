@@ -377,7 +377,7 @@ class TRACE:
         alphas, _, loglik_fwd = self.forward_algo(**kwargs)
         betas, _, loglik_bwd = self.backward_algo(**kwargs)
         gammas = (alphas + betas) - logsumexp_sp(alphas + betas, axis=0)
-        return gammas, alphas, betas, loglik_fwd + loglik_bwd
+        return gammas, alphas, betas, loglik_fwd
 
     def update_transitions(self, gammas, alphas, betas, p, q):
         """Update for transition probabilities."""
