@@ -115,8 +115,8 @@ def get_data(ts, ind, t_archaic, windowsize, mask=None, chrom=None):
                         - max(treespan[curtrees[j]][0], int(k * windowsize))
                     )
                 treelens = np.array(treelens)
-                curtrees = curtrees[treelens > 1]
-                treelens = treelens[treelens > 1]
+                curtrees = curtrees[treelens >= 1]
+                treelens = treelens[treelens >= 1]
                 if len(curtrees) == 0:
                     accessible_windows[k] = 0
                     for i in range(len(ind)):
@@ -135,7 +135,7 @@ def get_data(ts, ind, t_archaic, windowsize, mask=None, chrom=None):
                             tnleaves[i][curtrees], weights=treelens
                         )
             curtrees = []
-            if treespan[t - 1][1] < (k + 1) * windowsize + windowsize:
+            if treespan[t - 1][1] > (k + 1) * windowsize:
                 if mask[t - 1] == 1:
                     curtrees.append(t - 1)
                 else:
