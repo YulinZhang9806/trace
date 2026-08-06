@@ -180,6 +180,7 @@ def test_window_bug_repro():
     Integrate and run the small window-aggregation pipeline from tracehmm.fix.
     Thanks @Jie Wang for reporting this bug and providing a minimal test case.
     """
+
     # TRACE's windowed aggregation from extract_cli.py::get_data (lines 64-143)
     def trace_windowed(treespan, feat, windowsize, seq_length):
         treespan = treespan.astype(int)
@@ -188,12 +189,14 @@ def test_window_bug_repro():
         ind = np.array([0])
         ncoal_sub = np.zeros((1, m))
         accessible_windows = np.ones(m)
-        tncoal = np.array([feat], dtype=float)# shape (1, n_trees)
+        tncoal = np.array([feat], dtype=float)  # shape (1, n_trees)
         mask = np.ones(treespan.shape[0])
         t = 0
         curtrees = []
         for k in range(m):
-            while t < treespan.shape[0] and treespan[t][0] < int(k * windowsize + windowsize):
+            while t < treespan.shape[0] and treespan[t][0] < int(
+                k * windowsize + windowsize
+            ):
                 if mask[t] == 1:
                     curtrees.append(t)
                 else:
@@ -213,7 +216,10 @@ def test_window_bug_repro():
                 else:
                     for j in range(len(curtrees)):
                         treelens.append(
-                            min(treespan[curtrees[j]][1], int(k * windowsize + windowsize))
+                            min(
+                                treespan[curtrees[j]][1],
+                                int(k * windowsize + windowsize),
+                            )
                             - max(treespan[curtrees[j]][0], int(k * windowsize))
                         )
                     treelens = np.array(treelens)
@@ -225,7 +231,9 @@ def test_window_bug_repro():
                             ncoal_sub[i][k] = 1e-10
                     else:
                         for i in range(len(ind)):
-                            ncoal_sub[i][k] = np.average(tncoal[i][curtrees], weights=treelens)
+                            ncoal_sub[i][k] = np.average(
+                                tncoal[i][curtrees], weights=treelens
+                            )
                 curtrees = []
                 if treespan[t - 1][1] > (k + 1) * windowsize:  # BUG: carry-over
                     if mask[t - 1] == 1:
@@ -233,11 +241,19 @@ def test_window_bug_repro():
                     else:
                         curtrees.append(-1)
         return ncoal_sub[0], accessible_windows
-    
+
     def reference_windowed(treespan, feat, windowsize, seq_length):
+        """
+        Reference implementation for making sure a feature is
+        appropriately assigned to non-overlapping windows.
+
+        This is an implementation which fixes the weighting for windows with overlaps.
+        """
         treespan = treespan.astype(float)
         m = int(seq_length / windowsize) + int(seq_length % windowsize > 0)
-        bounds = np.array([k * windowsize for k in range(m)] + [seq_length], dtype=float)
+        bounds = np.array(
+            [k * windowsize for k in range(m)] + [seq_length], dtype=float
+        )
         out = np.zeros(m)
         accessible = np.zeros(m)
         for k in range(m):
@@ -254,7 +270,7 @@ def test_window_bug_repro():
         return out, accessible
 
     # initialize a simple tree sequence with two trees
-    seq_length=300
+    seq_length = 300
     tables = tskit.TableCollection(sequence_length=seq_length)
     sample = tables.nodes.add_row(flags=tskit.NODE_IS_SAMPLE, time=0)
     spans = [(0, 250), (250, 300)]
@@ -281,4 +297,3 @@ def test_window_bug_repro():
         expected_trace = ncoal_trace[k]
         assert np.isclose(expected_reference, expected_trace)
         assert trace_accessible[k] == reference_accessible[k]
-    
