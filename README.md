@@ -4,7 +4,7 @@ Manuscript: [![bioRxiv](https://img.shields.io/badge/bioRxiv-preprint-B31B1B)](h
 
 Analysis pipelines applied in the manuscript: https://github.com/YulinZhang9806/trace_paper
 
-Processed data: **(under development)**
+Processed data: https://zenodo.org/records/19685110
 
 
 ## Installation
