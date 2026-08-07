@@ -57,13 +57,13 @@ class TRACE:
                 continue
             else:
                 self.treespan[i] = np.array([t.interval.left, t.interval.right])
-        self.treespan = self.treespan[self.treespan[:, 1] > 0]
+        assert np.all(self.treespan[:, 1] > 0), f"Invalid tree edges {self.treespan[self.treespan[:, 1] <= 0]}"
 
     def mask_regions(self, treespan, chrom, maskfile, f=None):
         """Mask regions of the treespan."""
-        assert self.treespan is not None
+        assert treespan is not None
         assert maskfile is not None
-        self.mask = np.ones(treespan.shape[0])
+        output_mask = np.ones(treespan.shape[0])
         mask = pybedtools.BedTool(maskfile)
         treespan = treespan.astype(int)
         rows = [f"{chrom}\t{start}\t{end}" for start, end in treespan]
@@ -74,13 +74,13 @@ class TRACE:
         else:
             intersects = tspan.intersect(mask, u=True)
         overlapping = set((i.chrom, i.start, i.end) for i in intersects)
-        for i in range(self.treespan.shape[0]):
+        for i in range(treespan.shape[0]):
             if (
-                not (chrom, int(self.treespan[i][0]), int(self.treespan[i][1]))
+                not (chrom, int(treespan[i][0]), int(treespan[i][1]))
                 in overlapping
             ):
-                self.mask[i] = 0
-        return self.mask
+                output_mask[i] = 0
+        return output_mask
 
     def extract_ncoal(self, idx, t_archaic, subrange=None):
         """Extract the number of coalescent events outside the focal branch."""
