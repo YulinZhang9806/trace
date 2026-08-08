@@ -244,7 +244,7 @@ def main(
         ), "Include regions file must be a valid BED file with 3 columns: chrom, start, end."
         assert (
             len(include_regions_df["chrom"].unique()) == 1
-        ), "Include regions file must be a valide BED file (no header) and contain only one chromosome."
+        ), "Include regions file must be a valid BED file (no header) and contain only one chromosome."
         assert include_regions_df["chrom"].unique()[0] == chrom, (
             "Chromosome ID in include regions file must match the provided --chrom argument.\n"
             f"Provided chromosome ID: {chrom}, chromosome ID in include regions file: {include_regions_df['chrom'].unique()[0]}"
