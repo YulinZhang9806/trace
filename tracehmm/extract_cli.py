@@ -60,6 +60,11 @@ def get_data(ts, ind, t_archaic, windowsize, input_mask=None, chrom=None):
         mask = np.ones(treespan.shape[0])
     treespan = treespan.astype(int)
     if windowsize is None:
+        if len(ind) == 1:
+            tncoal = np.array([tncoal])
+            tt1s = np.array([tt1s])
+            tt2s = np.array([tt2s])
+            tnleaves = np.array([tnleaves])
         return tncoal, tt1s, tt2s, tnleaves, treespan, mask, mask
     genome_length = ts.sequence_length
     m = int(genome_length / windowsize) + int(genome_length % windowsize > 0)

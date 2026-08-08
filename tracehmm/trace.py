@@ -381,7 +381,8 @@ class TRACE:
 
     def update_transitions(self, gammas, alphas, betas, emissions, p, q):
         """Update for transition probabilities."""
-        assert alphas.size == betas.size == emissions.size
+        # assert alphas.size == betas.size == emissions.size
+        assert gammas.shape == alphas.shape == betas.shape == emissions.shape
         assert (p > 0) and (q > 0)
         assert (p < 1) and (q < 1)
         m = self.m
