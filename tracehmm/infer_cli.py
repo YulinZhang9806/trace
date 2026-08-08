@@ -23,8 +23,7 @@ logging.basicConfig(
     "-i",
     required=True,
     type=str,
-    help="the focal individual tree node id to run the HMM on, only take a "
-    + "sample name if --sample-names is specified.",
+    help="the focal individual tree node id to run the HMM on.",
 )
 @click.option(
     "--npz-files",
@@ -101,7 +100,6 @@ def main(
         func = np.ma.median
 
     logging.info("Establishing sample IDs ...")
-    # handle sample names
     try:
         indiv = int(individual)
     except ValueError:
@@ -136,6 +134,11 @@ def main(
             if indiv not in individuals:
                 logging.info(
                     f"Individual {indiv} not found in data file {data_file} ... exiting."
+                )
+                sys.exit(1)
+            if np.sum(individuals == indiv) > 1:
+                logging.info(
+                    f"Individual {indiv} found more than once in data file {data_file} ... exiting."
                 )
                 sys.exit(1)
             indiv_idx = np.where(individuals == indiv)[0][0]
@@ -173,23 +176,23 @@ def main(
             if Path(data_file).is_file():
                 logging.info(f"loading {data_file} ...")
                 with open(data_file, "r") as f:
-                    data_files = f.readlines()
+                    dfiles = f.readlines()
             else:
                 logging.info(
                     f"File {data_file} is not a valid filepath from `--data-files`  ... exiting."
                 )
                 sys.exit(1)
-            for fp in data_files:
+            for fp in dfiles:
                 if not Path(fp.strip()).is_file():
                     logging.info(
                         f"File {fp} from {data_file} is not a valid filepath ... exiting."
                     )
                     sys.exit(1)
-            data = np.load(data_files[0].strip())
+            data = np.load(dfiles[0].strip())
             individuals = data["individuals"]
             if indiv not in individuals:
                 logging.info(
-                    f"Individual {indiv} not found in data file {data_files[0]} ... exiting."
+                    f"Individual {indiv} not found in data file {dfiles[0]} ... exiting."
                 )
                 sys.exit(1)
             indiv_idx = np.where(individuals == indiv)[0][0]
@@ -197,8 +200,8 @@ def main(
             ot1s = data["t1s"][indiv_idx]
             ot2s = data["t2s"][indiv_idx]
             oinclude_regions = data["accessible_windows"]
-            for i in range(1, len(data_files)):
-                x = data_files[i].strip()
+            for i in range(1, len(dfiles)):
+                x = dfiles[i].strip()
                 logging.info(f"loading {x} ...")
                 data = np.load(x)
                 individuals = data["individuals"]
@@ -232,7 +235,7 @@ def main(
                 f"Aggregating data across posterior tree sequences in {data_file} ..."
             )
             if idx == 0:
-                if len(data_files) > 1:
+                if len(dfiles) > 1:
                     ncoal = func(masked_ncoal, axis=0).data
                     t1s = func(masked_t1s, axis=0).data
                     t2s = func(masked_t2s, axis=0).data
@@ -252,7 +255,7 @@ def main(
                 treespan = data["treespan"]
             else:
                 treespan = np.vstack((treespan, data["treespan"]))
-                if len(data_files) > 1:
+                if len(dfiles) > 1:
                     ncoal = np.concatenate((ncoal, func(masked_ncoal, axis=0).data))
                     t1s = np.concatenate((t1s, func(masked_t1s, axis=0).data))
                     t2s = np.concatenate((t2s, func(masked_t2s, axis=0).data))
@@ -345,8 +348,6 @@ def main(
     logging.info("Running TRACE decoding via Forward-Backward algorithm ...")
     gammas, _, _ = hmm.decode(seed=seed)
 
-    # if sample_names is not None:
-    #     indiv = tsid_to_samplename[indiv]
     for idx, chrom in enumerate(chroms):
         outname = f"{out}.{chrom}.xss.npz"
         start = 0 if idx == 0 else np.sum(chromfile_edges[:idx])

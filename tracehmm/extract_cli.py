@@ -255,6 +255,11 @@ def main(
     ncoal, t1s, t2s, nleaves, treespan, accessible_windows, mask = get_data(
         ts, indiv, t_archaic, window_size, include_regions, chrom
     )
+    assert len(accessible_windows) == ncoal.shape[1], "Accessible windows length does not match the number of windows in ncoal."
+    assert len(accessible_windows) == t1s.shape[1], "Accessible windows length does not match the number of windows in t1s."
+    assert len(accessible_windows) == t2s.shape[1], "Accessible windows length does not match the number of windows in t2s."
+    assert len(accessible_windows) == nleaves.shape[1], "Accessible windows length does not match the number of windows in nleaves."
+    assert treespan.shape[0] == mask.shape[0], "Marginal treespan length does not match the length of the marginal mask."
     if window_size is not None:
         m = len(accessible_windows)
         atreespan = np.array(

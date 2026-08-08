@@ -379,9 +379,9 @@ class TRACE:
         gammas = (alphas + betas) - logsumexp_sp(alphas + betas, axis=0)
         return gammas, alphas, betas, loglik_fwd
 
-    def update_transitions(self, gammas, alphas, betas, p, q):
+    def update_transitions(self, gammas, alphas, betas, emissions, p, q):
         """Update for transition probabilities."""
-        assert alphas.size == betas.size
+        assert alphas.size == betas.size == emissions.size
         assert (p > 0) and (q > 0)
         assert (p < 1) and (q < 1)
         m = self.m
@@ -390,7 +390,7 @@ class TRACE:
         eta_01, eta_10 = update_oneind_cython(
             alphas=alphas,
             betas=betas,
-            emissions=self.emissions,
+            emissions=emissions,
             p=p,
             q=q,
         )
@@ -466,9 +466,10 @@ class TRACE:
 
             # EM inference of transitions
             p_est, q_est = self.update_transitions(
-                np.copy(gammas[:, include_index], order="C"),
-                np.copy(alphas[:, include_index], order="C"),
-                np.copy(betas[:, include_index], order="C"),
+                np.copy(gammas, order="C"),
+                np.copy(alphas, order="C"),
+                np.copy(betas, order="C"),
+                np.copy(self.emissions, order="C"),
                 p=self.p,
                 q=self.q,
             )
