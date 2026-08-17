@@ -48,18 +48,23 @@ def verify_indivs(indiv, sample_names=None):
     return indiv
 
 
-def get_data(ts, ind, t_archaic, windowsize, mask=None, chrom=None):
+def get_data(ts, ind, t_archaic, windowsize, input_mask=None, chrom=None):
     """Extract data from tree sequence for a specific individual haplotype."""
     hmm = TRACE()
     tncoal, tt1s, tt2s, treespan, tnleaves = hmm.prepare_data_tmrca(
         ts=ts, ind=ind, t_archaic=t_archaic
     )
-    if mask is not None:
-        mask = hmm.mask_regions(treespan, chrom, mask, f=0.99)
+    if input_mask is not None:
+        mask = hmm.mask_regions(treespan, chrom, input_mask, f=0.99)
     else:
         mask = np.ones(treespan.shape[0])
     treespan = treespan.astype(int)
     if windowsize is None:
+        if len(ind) == 1:
+            tncoal = np.array([tncoal])
+            tt1s = np.array([tt1s])
+            tt2s = np.array([tt2s])
+            tnleaves = np.array([tnleaves])
         return tncoal, tt1s, tt2s, tnleaves, treespan, mask, mask
     genome_length = ts.sequence_length
     m = int(genome_length / windowsize) + int(genome_length % windowsize > 0)
@@ -85,29 +90,33 @@ def get_data(ts, ind, t_archaic, windowsize, mask=None, chrom=None):
                 curtrees.append(-1)
             t += 1
         if len(curtrees) == 0:
-            for i in range(len(ind)):
-                ncoal_sub[i][k] = tncoal[i][t - 1]
-                t1s_sub[i][k] = tt1s[i][t - 1]
-                t2s_sub[i][k] = tt2s[i][t - 1]
-                nleaves_sub[i][k] = tnleaves[i][t - 1]
+            if t == 0:
+                print(f"Tree {treespan[t]} at the head of tree sequence is not in window {k}, problematic data")
+                sys.exit(1)
+            if mask[t - 1] == 1:
+                for i in range(len(ind)):
+                    ncoal_sub[i][k] = tncoal[i][t - 1]
+                    t1s_sub[i][k] = tt1s[i][t - 1]
+                    t2s_sub[i][k] = tt2s[i][t - 1]
+                    nleaves_sub[i][k] = tnleaves[i][t - 1]
+            else:
+                accessible_windows[k] = 0
+                for i in range(len(ind)):
+                    ncoal_sub[i][k] = 1e-10
+                    t1s_sub[i][k] = 0
+                    t2s_sub[i][k] = 0
+                    nleaves_sub[i][k] = 0
         else:
             treelens = []
             curtrees = np.array(curtrees)
             curtrees = curtrees[curtrees >= 0]
             if len(curtrees) == 0:
                 accessible_windows[k] = 0
-                if k == 0:
-                    for i in range(len(ind)):
-                        ncoal_sub[i][k] = 1e-10
-                        t1s_sub[i][k] = 0
-                        t2s_sub[i][k] = 0
-                        nleaves_sub[i][k] = 0
-                else:
-                    for i in range(len(ind)):
-                        ncoal_sub[i][k] = 1e-10
-                        t1s_sub[i][k] = 0
-                        t2s_sub[i][k] = 0
-                        nleaves_sub[i][k] = 0
+                for i in range(len(ind)):
+                    ncoal_sub[i][k] = 1e-10
+                    t1s_sub[i][k] = 0
+                    t2s_sub[i][k] = 0
+                    nleaves_sub[i][k] = 0
             else:
                 for j in range(len(curtrees)):
                     treelens.append(
@@ -240,7 +249,7 @@ def main(
         ), "Include regions file must be a valid BED file with 3 columns: chrom, start, end."
         assert (
             len(include_regions_df["chrom"].unique()) == 1
-        ), "Include regions file must be a valide BED file (no header) and contain only one chromosome."
+        ), "Include regions file must be a valid BED file (no header) and contain only one chromosome."
         assert include_regions_df["chrom"].unique()[0] == chrom, (
             "Chromosome ID in include regions file must match the provided --chrom argument.\n"
             f"Provided chromosome ID: {chrom}, chromosome ID in include regions file: {include_regions_df['chrom'].unique()[0]}"
@@ -251,10 +260,13 @@ def main(
     ncoal, t1s, t2s, nleaves, treespan, accessible_windows, mask = get_data(
         ts, indiv, t_archaic, window_size, include_regions, chrom
     )
+    assert len(accessible_windows) == ncoal.shape[1], "Accessible windows length does not match the number of windows in ncoal."
+    assert len(accessible_windows) == t1s.shape[1], "Accessible windows length does not match the number of windows in t1s."
+    assert len(accessible_windows) == t2s.shape[1], "Accessible windows length does not match the number of windows in t2s."
+    assert len(accessible_windows) == nleaves.shape[1], "Accessible windows length does not match the number of windows in nleaves."
+    assert treespan.shape[0] == mask.shape[0], "Marginal treespan length does not match the length of the marginal mask."
     if window_size is not None:
-        m = int(ts.sequence_length / window_size) + int(
-            ts.sequence_length % window_size > 0
-        )
+        m = len(accessible_windows)
         atreespan = np.array(
             [[t * window_size, (t + 1) * window_size] for t in range(m)]
         )

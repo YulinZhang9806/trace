@@ -57,13 +57,13 @@ class TRACE:
                 continue
             else:
                 self.treespan[i] = np.array([t.interval.left, t.interval.right])
-        self.treespan = self.treespan[self.treespan[:, 1] > 0]
+        assert np.all(self.treespan[:, 1] > 0), f"Invalid tree edges {self.treespan[self.treespan[:, 1] <= 0]}"
 
     def mask_regions(self, treespan, chrom, maskfile, f=None):
         """Mask regions of the treespan."""
-        assert self.treespan is not None
+        assert treespan is not None
         assert maskfile is not None
-        self.mask = np.ones(treespan.shape[0])
+        output_mask = np.ones(treespan.shape[0])
         mask = pybedtools.BedTool(maskfile)
         treespan = treespan.astype(int)
         rows = [f"{chrom}\t{start}\t{end}" for start, end in treespan]
@@ -74,13 +74,13 @@ class TRACE:
         else:
             intersects = tspan.intersect(mask, u=True)
         overlapping = set((i.chrom, i.start, i.end) for i in intersects)
-        for i in range(self.treespan.shape[0]):
+        for i in range(treespan.shape[0]):
             if (
-                not (chrom, int(self.treespan[i][0]), int(self.treespan[i][1]))
+                not (chrom, int(treespan[i][0]), int(treespan[i][1]))
                 in overlapping
             ):
-                self.mask[i] = 0
-        return self.mask
+                output_mask[i] = 0
+        return output_mask
 
     def extract_ncoal(self, idx, t_archaic, subrange=None):
         """Extract the number of coalescent events outside the focal branch."""
@@ -379,9 +379,10 @@ class TRACE:
         gammas = (alphas + betas) - logsumexp_sp(alphas + betas, axis=0)
         return gammas, alphas, betas, loglik_fwd
 
-    def update_transitions(self, gammas, alphas, betas, p, q):
+    def update_transitions(self, gammas, alphas, betas, emissions, p, q):
         """Update for transition probabilities."""
-        assert alphas.size == betas.size
+        # assert alphas.size == betas.size == emissions.size
+        assert gammas.shape == alphas.shape == betas.shape == emissions.shape
         assert (p > 0) and (q > 0)
         assert (p < 1) and (q < 1)
         m = self.m
@@ -390,7 +391,7 @@ class TRACE:
         eta_01, eta_10 = update_oneind_cython(
             alphas=alphas,
             betas=betas,
-            emissions=self.emissions,
+            emissions=emissions,
             p=p,
             q=q,
         )
@@ -466,9 +467,10 @@ class TRACE:
 
             # EM inference of transitions
             p_est, q_est = self.update_transitions(
-                np.copy(gammas[:, include_index], order="C"),
-                np.copy(alphas[:, include_index], order="C"),
-                np.copy(betas[:, include_index], order="C"),
+                np.copy(gammas, order="C"),
+                np.copy(alphas, order="C"),
+                np.copy(betas, order="C"),
+                np.copy(self.emissions, order="C"),
                 p=self.p,
                 q=self.q,
             )
