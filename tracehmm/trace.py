@@ -304,8 +304,19 @@ class TRACE:
 
         subncoal = self.ncoal[accessible_index]
         # rescale emission so that density is between 0 and 1
-        grid_max = gamma_sp.pdf(subncoal, self.emi2_a1, 1 / self.emi2_b1).max()
-        self.scale_factor = 1 / grid_max
+        grid_max = gamma_sp.pdf(
+            subncoal, self.emi2_a1, scale=1 / self.emi2_b1
+        ).max()
+        if not np.isfinite(grid_max) or grid_max <= 0:
+            raise ValueError(
+                "Gamma null-density maximum must be finite and positive."
+            )
+        scale_factor = 1 / grid_max
+        if not np.isfinite(scale_factor):
+            raise ValueError(
+                "Gamma null-density scaling factor must be finite and positive."
+            )
+        self.scale_factor = scale_factor
 
         if propintro is None:
             outliers = np.array(outliers)
