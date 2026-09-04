@@ -232,7 +232,7 @@ class TRACE:
                     emission[i] = gamma_logpdf(
                         self.ncoal[i], self.emi2_a1, self.emi2_b1
                     )
-        emission = emission + np.log(self.scale_factor)
+        emission = emission
         return emission
 
     def find_crossing_point(self, f=None, g=None, mu1=50e3):
@@ -303,20 +303,6 @@ class TRACE:
         self.emi2_a1 = self.emi2_mean1**2 / self.emi2_var1
 
         subncoal = self.ncoal[accessible_index]
-        # rescale emission so that density is between 0 and 1
-        grid_max = gamma_sp.pdf(
-            subncoal, self.emi2_a1, scale=1 / self.emi2_b1
-        ).max()
-        if not np.isfinite(grid_max) or grid_max <= 0:
-            raise ValueError(
-                "Gamma null-density maximum must be finite and positive."
-            )
-        scale_factor = 1 / grid_max
-        if not np.isfinite(scale_factor):
-            raise ValueError(
-                "Gamma null-density scaling factor must be finite and positive."
-            )
-        self.scale_factor = scale_factor
 
         if propintro is None:
             outliers = np.array(outliers)

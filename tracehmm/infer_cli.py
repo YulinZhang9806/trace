@@ -363,4 +363,6 @@ def main(
             gammas=np.exp(gammas[:, start:end]),
             seed=np.array([seed]),
             individual=np.array([indiv]),
+            t1s=t1s[start:end],
+            t2s=t2s[start:end],
         )
