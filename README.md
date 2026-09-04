@@ -314,6 +314,8 @@ We need to run this command separately for each individual. We could change the 
     - "gammas": (2 x l) array storing the posterior probability for row0-Human and row1-Archaic states across l marginal trees (or genomic windows)
     - "seed": (1, ) array storing the random seed used for TRACE run
     - "individual": (1, ) array storing tree node ID for the focal individual
+    - "t1s": (l, ) shape array storing masked mean lower-end coalescent time for the extracted branch from all input files
+    - "t2s": (l, ) shape array storing masked mean upper-end coalescent time for the extracted branch from all input files
 
 3. Output from `trace-summarize`: a txt file **containing inferred archaic fragments** with following columns
     - "chromosome": chromosome identifier, same as specified in `--chroms`
