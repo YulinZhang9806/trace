@@ -4,6 +4,7 @@ import msprime as msp
 import numpy as np 
 import tskit
 import pytest
+from scipy.stats import gamma
 
 from tracehmm import TRACE
 
@@ -27,6 +28,37 @@ def test_init():
     """Test that trace can be naively initialized."""
     hmm = TRACE()
     assert hmm is not None
+
+
+def test_init_ncoal_gamma_params_uses_inverse_rate_as_scale():
+    """The inverse gamma rate must be passed as scale."""
+    hmm = TRACE()
+    hmm.ncoal = np.linspace(1_000_000.0, 2_000_000.0, 200)
+    hmm.mask = np.ones(hmm.ncoal.size)
+
+    hmm.init_ncoal_gamma_params(propintro=1)
+
+    expected_grid_max = gamma.pdf(
+        hmm.ncoal,
+        hmm.emi2_a1,
+        scale=1 / hmm.emi2_b1,
+    ).max()
+    assert np.isfinite(hmm.scale_factor)
+    assert hmm.scale_factor == pytest.approx(1 / expected_grid_max)
+
+
+def test_init_ncoal_gamma_params_rejects_invalid_normalization(monkeypatch):
+    """Reject a degenerate normalization before HMM training."""
+    hmm = TRACE()
+    hmm.ncoal = np.linspace(1_000_000.0, 2_000_000.0, 200)
+    hmm.mask = np.ones(hmm.ncoal.size)
+
+    monkeypatch.setattr(
+        "tracehmm.trace.gamma_sp.pdf",
+        lambda values, *args, **kwargs: np.zeros_like(values),
+    )
+    with pytest.raises(ValueError, match="finite and positive"):
+        hmm.init_ncoal_gamma_params(propintro=1)
 
 
 @pytest.mark.parametrize("ts", [ts1, ts2])
